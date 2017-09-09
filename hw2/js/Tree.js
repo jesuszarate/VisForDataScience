@@ -37,7 +37,7 @@ class Tree {
 
         //Assign Positions and Levels by making calls to assignPosition() and assignLevel()
         this.root.position = 0;
-        this.assignLevelAndPosition(this.root, 0);
+        this.assignLevelAndPosition(this.root, 0, 0);
         this.assignPosition(this.root, 0);
 
         for (let i = 0; i < this.nodeList.length; i++) {
@@ -53,22 +53,26 @@ class Tree {
         let queue = [node];
         let n;
 
+        let currLevel = 0;
+        let pos = 0;
         while (queue.length > 0) {
 
             n = queue.shift();
-            //callback(n.value);
-            //node.level = level;
+
+            if(currLevel !== n.level) {
+                pos = 0;
+                currLevel = n.level;
+            }
+            n.position = pos;
+            pos++;
 
             let children = n.children;
 
             for (let i = 0; i < children.length; i++) {
                 let nextNode = children[i];
-                nextNode.position = i;
-                //this.assignLevelAndPosition(nextNode, level + 1);
                 queue.push(nextNode);
             }
         }
-
     }
 
     /**
@@ -80,11 +84,12 @@ class Tree {
 
         let children = node.children;
 
+        let count = 0;
         for (let i = 0; i < children.length; i++) {
             let nextNode = children[i];
-            //nextNode.position = level + i;
-            this.assignLevelAndPosition(nextNode, level + 1);
+            count += this.assignLevelAndPosition(nextNode, level + 1);
         }
+        return children.length;
     }
 
     /**
@@ -93,17 +98,41 @@ class Tree {
     renderTree() {
         let svg = d3.select("svg");
 
-        svg.selectAll("circle")
+        svg.selectAll(".line")
+            .data(this.nodeList)
+            .enter()
+            .append("line")
+            .attr("x1", function (d) {
+                return (d.level + 1) * 200
+            })
+            .attr("y1", function (d) {
+                return (d.position + 1) * 100
+            })
+            .attr("x2", function (d) {
+                if (d.parentNode !== null) {
+                    return (d.parentNode.level + 1) * 200;
+                }
+                return ((d.level + 1) * 200);
+            })
+            .attr("y2", function (d) {
+                    if (d.parentNode !== null) {
+                        return (d.parentNode.position + 1) * 100;
+                    }
+                    return ((d.position + 1) * 100);
+                }
+            );
+
+        svg.selectAll("circ")
             .data(this.nodeList)
             .enter().append("circle")
             .attr("cx", function (d) {
-                return (d.  level + 1) * 200;
+                return (d.level + 1) * 200;
             })
             .attr("cy", function (d) {
-                return (d.position + 1) * 200;
+                return (d.position + 1) * 100;
             })
             .attr("r", function (d) {
-                return 60;
+                return 50;
             });
 
         svg.selectAll("text")
@@ -114,29 +143,22 @@ class Tree {
                 return (d.level + 1) * 200;
             })
             .attr("y", function (d, i) {
-                return (d.position + 1) * 200;
+                return (d.position + 1) * 100;
             })
             .text(function (d, i) {
-                //return d.position + ", " + d.level;
-                return d.name;
+                return d.name + " " + d.position + ", " + d.level;
+                //return d.name;
             });
 
+        for (let i = 0; i < this.nodeList.length; i++) {
+            let node = this.nodeList[i];
+            if (node.parentNode !== null)
+                console.log(i + ": " + node.parentNode.name + " => " + node.name);
+            else
+                console.log(i + ": => " + node.name);
+        }
 
-        //
-        // svg.selectAll("circle")
-        //     .data(this.nodeList)
-        //     .enter().append("circle")
-        //
-        //     .attr("cx", function (d) {
-        //         return d.position * 100 + 50
-        //     })
-        //     .attr("cy", function (d) {
-        //         return d.level * 100 + 50
-        //     })
-        //     .attr("r", function (d) {
-        //         return 30;
-        //     });
-        //     //.style("fill", "steelblue");
+
     }
 
 }
