@@ -39,11 +39,6 @@ class Tree {
         this.root.position = 0;
         this.assignLevelAndPosition(this.root, 0, 0);
         this.assignPosition(this.root, 0);
-
-        for (let i = 0; i < this.nodeList.length; i++) {
-            let currentNode = this.nodeList[i];
-            console.log(currentNode.position + ", " + currentNode.level);
-        }
     }
 
     /**
@@ -60,10 +55,10 @@ class Tree {
             n = queue.shift();
 
             if(currLevel !== n.level) {
-                pos = 0;
+                pos = n.parentNode.position;
                 currLevel = n.level;
             }
-            n.position = pos;
+            n.position = pos;// + n.level;
             pos++;
 
             let children = n.children;
@@ -98,27 +93,30 @@ class Tree {
     renderTree() {
         let svg = d3.select("svg");
 
+        let xDist = 220;
+        let yDist = 120;
+        let nodeRadius = 45;
         svg.selectAll(".line")
             .data(this.nodeList)
             .enter()
             .append("line")
             .attr("x1", function (d) {
-                return (d.level + 1) * 200
+                return (d.level + 1) * xDist
             })
             .attr("y1", function (d) {
-                return (d.position + 1) * 100
+                return (d.position + 1) * yDist
             })
             .attr("x2", function (d) {
                 if (d.parentNode !== null) {
-                    return (d.parentNode.level + 1) * 200;
+                    return (d.parentNode.level + 1) * xDist;
                 }
-                return ((d.level + 1) * 200);
+                return ((d.level + 1) * xDist);
             })
             .attr("y2", function (d) {
                     if (d.parentNode !== null) {
-                        return (d.parentNode.position + 1) * 100;
+                        return (d.parentNode.position + 1) * yDist;
                     }
-                    return ((d.position + 1) * 100);
+                    return ((d.position + 1) * yDist);
                 }
             );
 
@@ -126,39 +124,28 @@ class Tree {
             .data(this.nodeList)
             .enter().append("circle")
             .attr("cx", function (d) {
-                return (d.level + 1) * 200;
+                return (d.level + 1) * xDist;
             })
             .attr("cy", function (d) {
-                return (d.position + 1) * 100;
+                return (d.position + 1) * yDist;
             })
             .attr("r", function (d) {
-                return 50;
+                return nodeRadius;
             });
 
         svg.selectAll("text")
             .data(this.nodeList)
             .enter().append("text")
             .attr("class", "label")
-            .attr("x", function (d, i) {
-                return (d.level + 1) * 200;
+            .attr("x", function (d) {
+                return (d.level + 1) * xDist;
             })
-            .attr("y", function (d, i) {
-                return (d.position + 1) * 100;
+            .attr("y", function (d) {
+                return (d.position + 1) * yDist;
             })
-            .text(function (d, i) {
-                return d.name + " " + d.position + ", " + d.level;
-                //return d.name;
+            .text(function (d) {
+                return d.name;// + " " + d.position + ", " + d.level;
             });
-
-        for (let i = 0; i < this.nodeList.length; i++) {
-            let node = this.nodeList[i];
-            if (node.parentNode !== null)
-                console.log(i + ": " + node.parentNode.name + " => " + node.name);
-            else
-                console.log(i + ": => " + node.name);
-        }
-
-
     }
 
 }
