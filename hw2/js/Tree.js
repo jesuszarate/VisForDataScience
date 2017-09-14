@@ -1,5 +1,6 @@
 /** Class representing a Tree. */
 class Tree {
+
     /**
      * Creates a Tree Object
      * parentNode, children, parentName,level,position
