@@ -118,14 +118,22 @@ function update(error, data) {
 
 
     // TODO: Select and update the scatterplot points
-    updateScatterChart("#scatterPlot");
+    updateScatterChart("#scatterPlot", aScale, iScale, data);
 
     // ****** TODO: PART IV ******
 
 }
 
-function updateScatterChart(idName, data){
-
+function updateScatterChart(idName, xScale, yScale, data){
+    let svg = d3.select(idName);
+    svg.selectAll('circle')
+        .data(data)
+        .attr("cx", function (d) {
+            return xScale(d.a);
+        })
+        .attr("cy", function (d) {
+            return yScale(d.b);
+        });
 
 }
 
