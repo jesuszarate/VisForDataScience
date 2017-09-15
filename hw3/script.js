@@ -79,32 +79,60 @@ function update(error, data) {
 
     // ****** TODO: PART III (you will also edit in PART V) ******
 
-    // TODO: Select and update the 'a' bar chart bars
+    // Select and update the 'a' bar chart bars
     updateABarGraphWithData("#barChart_a", aScale, data);
 
-    // TODO: Select and update the 'b' bar chart bars
+    // Select and update the 'b' bar chart bars
     updateBBarGraphWithData("#barChart_b", bScale, data);
 
-    // TODO: Select and update the 'a' line chart path using this line generator
+    // Select and update the 'a' line chart path using this line generator
 
     let aLineGenerator = d3.line()
         .x((d, i) => iScale(i))
         .y((d) => aScale(d.a));
 
-    // TODO: Select and update the 'b' line chart path (create your own generator)
+    updateLineChart("#lineChart_a", aLineGenerator, data);
 
-    // TODO: Select and update the 'a' area chart path using this area generator
+    // Select and update the 'b' line chart path (create your own generator)
+    let bLineGenerator = d3.line()
+        .x((d, i) => iScale(i))
+        .y((d) => aScale(d.b));
+
+    updateLineChart("#lineChart_b", bLineGenerator, data);
+
+    // Select and update the 'a' area chart path using this area generator
+    // Select and update the 'b' area chart path (create your own generator)
     let aAreaGenerator = d3.area()
         .x((d, i) => iScale(i))
         .y0(0)
         .y1(d => aScale(d.a));
 
-    // TODO: Select and update the 'b' area chart path (create your own generator)
+    let bAreaGenerator = d3.area()
+        .x((d, i) => iScale(i))
+        .y0(0)
+        .y1(d => aScale(d.b));
+
+
+    updateLineChart("#areaChart_a", aAreaGenerator, data);
+    updateLineChart("#areaChart_b", bAreaGenerator, data);
+
 
     // TODO: Select and update the scatterplot points
+    updateScatterChart("#scatterPlot");
 
     // ****** TODO: PART IV ******
 
+}
+
+function updateScatterChart(idName, data){
+
+
+}
+
+function updateLineChart(idName, generator, data) {
+    let svg = d3.select(idName);
+    svg.selectAll('path')
+        .attr("d", generator(data));
 }
 
 function updateABarGraphWithData(idName, scale, data) {
