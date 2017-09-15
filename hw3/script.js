@@ -5,6 +5,33 @@
  */
 function staircase() {
     // ****** TODO: PART II ******
+    orderBarChart('barChart_a');
+    orderBarChart('barChart_b');
+}
+
+function orderBarChart(idName) {
+    let barChart = document.getElementById(idName).firstElementChild;
+    let heights = getAllHeights(barChart.children);
+
+    let children = barChart.children;
+
+    for (let i = 0; i < children.length; i++) {
+        let child = children[i];
+        child.setAttribute("height", heights[i]);
+
+    }
+}
+
+function getAllHeights(children) {
+
+    let bars = [];
+    for (let i = 0; i < children.length; i++) {
+        let child = children[i];
+        bars[i] = child.getAttribute("height");
+    }
+    return bars.sort(function (a, b) {
+        return a - b
+    });
 }
 
 /**
@@ -53,8 +80,10 @@ function update(error, data) {
     // ****** TODO: PART III (you will also edit in PART V) ******
 
     // TODO: Select and update the 'a' bar chart bars
+    updateABarGraphWithData("#barChart_a", aScale, data);
 
     // TODO: Select and update the 'b' bar chart bars
+    updateBBarGraphWithData("#barChart_b", bScale, data);
 
     // TODO: Select and update the 'a' line chart path using this line generator
 
@@ -75,6 +104,28 @@ function update(error, data) {
     // TODO: Select and update the scatterplot points
 
     // ****** TODO: PART IV ******
+
+}
+
+function updateABarGraphWithData(idName, scale, data) {
+    let svg = d3.select(idName);
+
+    let rects = svg.selectAll("rect")
+        .data(data)
+        .attr("height", function (d) {
+            return scale(d.a);
+        });
+
+}
+
+function updateBBarGraphWithData(idName, scale, data) {
+    let svg = d3.select(idName);
+
+    let rects = svg.selectAll("rect")
+        .data(data)
+        .attr("height", function (d) {
+            return scale(d.b);
+        });
 
 }
 
