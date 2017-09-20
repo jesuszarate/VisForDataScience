@@ -9,6 +9,8 @@ function staircase() {
     orderBarChart('barChart_b');
 }
 
+//if (document.readyState === "complete") { changeData(); }
+
 function orderBarChart(idName) {
     let barChart = document.getElementById(idName).firstElementChild;
     let heights = getAllHeights(barChart.children);
@@ -117,23 +119,104 @@ function update(error, data) {
     updateLineChart("#areaChart_b", bAreaGenerator, data);
 
 
-    // TODO: Select and update the scatterplot points
-    updateScatterChart("#scatterPlot", aScale, iScale, data);
+    // Select and update the scatterplot points
+    updateScatterChart("#scatterPlot", aScale, bScale, data);
 
     // ****** TODO: PART IV ******
+    registerHoverOverBar("barChart_a");
+    registerHoverOverBar("barChart_b");
+
+    registerScatterPointClick("#scatterPlot")
+}
+
+function registerHoverOverBar(idName) {
+    let element = document.getElementById(idName);
+    element.onmouseover = function () {
+        onHoverOverBar(idName);
+    };
+
+    element.onmouseout = function (idName) {
+        onHoverLeaveBar(idName);
+    }
+}
+
+function onHoverOverBar(idName) {
+    let element = document.getElementById(idName);
+    let rect = event.target;
+    rect.style.fill = "teal";
 
 }
 
-function updateScatterChart(idName, xScale, yScale, data){
+function onHoverLeaveBar(idName) {
+    let element = document.getElementById(idName);
+    let rect = event.target;
+    rect.style.fill = "steelblue";
+}
+
+function registerScatterPointClick(idName) {
     let svg = d3.select(idName);
-    svg.selectAll('circle')
-        .data(data)
+    let circle = svg.selectAll('circle')
+        .on('click', function (d) {
+            console.log("x: " + d.a + ", y: " + d.b);
+        })
+}
+
+function updateScatterChart(idName, xScale, yScale, data) {
+    let svg = d3.select(idName);
+    let circle = svg.selectAll('circle')
+        .data(data);
+
+    // circle.data(data)
+    //     .attr("cx", function (d) {
+    //         return xScale(d.a);
+    //     })
+    //     .attr("cy", function (d) {
+    //         return yScale(d.b);
+    //     })
+    //     .attr("title", function (d) {
+    //         return "x: " + d.a + ", y: " + d.b;
+    //     })
+    //     .on('click', function (d) {
+    //         console.log("x: " + d.a + ", y: " + d.b);
+    //     });
+
+    let newCircle = circle.enter().append("circle")
+        .attr("cx", function (d) {
+            //return xScale(d.a);
+            return 0;
+        })
+        .attr("cy", function (d) {
+            //return yScale(d.b);
+            return 0;
+        })
+        .attr("r", 5)
+        .style("opacity", 0);
+
+    circle.exit()
+        .style("opacity", 1)
+        .transition()
+        .duration(3000)
+        .style("opacity", 0)
+        .remove();
+
+    circle = newCircle.merge(circle);
+
+    circle.transition()
+        .duration(3000)
+        // .attr("x", function (d, i) {
+        //     return i * 10;
+        // })
         .attr("cx", function (d) {
             return xScale(d.a);
         })
         .attr("cy", function (d) {
             return yScale(d.b);
-        });
+        })
+        // .on('click', function (d) {
+        //     console.log("x: " + d.a + ", y: " + d.b);
+        // })
+        .style("fill", "steelblue")
+        .style("opacity", 1);
 
 }
 
@@ -144,26 +227,85 @@ function updateLineChart(idName, generator, data) {
 }
 
 function updateABarGraphWithData(idName, scale, data) {
+
     let svg = d3.select(idName);
 
-    let rects = svg.selectAll("rect")
-        .data(data)
+    let bars = svg.selectAll("rect")
+        .data(data);
+
+    let newBars = bars.enter().append("rect")
+    // .attr("x", function (d, i) {
+    //     return i * 10;
+    // })
+        .attr("y", 0)
+        .attr("width", 20)
+        .attr("height", 0)
+        .style("opacity", 0)
+        .classed("barChart", true);
+
+    bars.exit()
+        .style("opacity", 1)
+        .transition()
+        .duration(3000)
+        .style("opacity", 0)
+        .remove();
+
+    bars = newBars.merge(bars);
+
+    bars.transition()
+        .duration(3000)
+        .attr("x", function (d, i) {
+            return i * 10;
+        })
+        .attr("y", 0)
+        .attr("width", 10)
         .attr("height", function (d) {
             return scale(d.a);
-        });
-
+        })
+        .style("fill", "steelblue")
+        .style("opacity", 1);
 }
 
 function updateBBarGraphWithData(idName, scale, data) {
     let svg = d3.select(idName);
 
-    let rects = svg.selectAll("rect")
-        .data(data)
+    // the data binding
+    let bars = svg.selectAll("rect")
+        .data(data);
+
+    let newBars = bars.enter().append("rect")
+    // .attr("x", function (d, i) {
+    //     return i * 10;
+    // })
+        .attr("y", 0)
+        .attr("width", 10)
+        .attr("height", 0)
+        .style("opacity", 0)
+        .classed("barChart", true);
+
+    bars.exit()
+        .style("opacity", 1)
+        .transition()
+        .duration(3000)
+        .style("opacity", 0)
+        .remove();
+
+    bars = newBars.merge(bars);
+
+    bars.transition()
+        .duration(3000)
+        .attr("x", function (d, i) {
+            return i * 10;
+        })
+        .attr("y", 0)
+        .attr("width", 10)
         .attr("height", function (d) {
             return scale(d.b);
-        });
-
+        })
+        .style("fill", "steelblue")
+        .style("opacity", 1);
 }
+
 
 /**
  * Load the file indicated by the select menu
