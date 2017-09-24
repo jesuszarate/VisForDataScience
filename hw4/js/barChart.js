@@ -23,8 +23,6 @@ class BarChart {
         // ******* TODO: PART I *******
 
         //console.log(selectedDimension);
-        this.infoPanel.updateInfo(selectedDimension);
-
 
         // Create the x and y scales; make
         // sure to leave room for the axes

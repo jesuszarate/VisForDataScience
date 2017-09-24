@@ -4,6 +4,8 @@ class InfoPanel {
      * Creates a infoPanel Object
      */
     constructor() {
+
+        let ul = d3.select('#teams').append('ul');
     }
 
     /**
@@ -22,10 +24,29 @@ class InfoPanel {
 
         //Set Labels
         let host = d3.select("#host");
+        host.text(oneWorldCup['host']);
 
-        host.text(oneWorldCup['goals']);
+        let title = d3.select('#edition');
+        title.text(oneWorldCup['edition']);
 
-        console.log("aloha world");
+        let winner = d3.select('#winner');
+        winner.text(oneWorldCup['winner']);
+
+        let silver = d3.select('#silver');
+        silver.text(oneWorldCup['runner_up']);
+
+
+        let ld = oneWorldCup['TEAM_NAMES'].split(",");
+
+        d3.select('#teams').selectAll('ul').remove();
+
+        let ul = d3.select('#teams').append('ul');
+
+        ul.selectAll('li')
+            .data(ld)
+            .enter()
+            .append('li')
+            .html(String);
     }
 
 }
