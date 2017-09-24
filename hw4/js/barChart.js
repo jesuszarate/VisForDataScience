@@ -98,30 +98,16 @@ class BarChart {
         let xScale = d3.scaleTime()
             .domain([new Date(min, 0, 1), new Date(max, 0, 1)])
             //.domain([min, max])
-            .range([0, width - padding + 20])
-            //.rangeRound([0,width - padding + 20], 100)
+            //.range([0, width - padding + 20])
+            .rangeRound([0,width - padding + 20], 100)
              .nice();
-
-        // let xScale = d3.scaleLinear()
-        //     .domain([min, max])
-        //     //.range([0, width - padding + 20])
-        //     .rangeRound([0,width - padding + 20], 10)
-        //     .nice();
-
-        // let color = d3.scaleLinear()
-        //     .domain([min, max])
-        //     .range(["darkred", "lightgray", "steelblue"]);
-
-        // let ticks = data.filter(function (d) {
-        //     return d.year;
-        // });
 
         console.log(ticks.length);
 
         let xAxis = d3.axisBottom();
         xAxis.scale(xScale)
             .ticks(d3.timeYear.every(4))
-            .ticks(20)
+            //.ticks(20)
             //.tickPadding([10])
             //.tickValues(ticks)
             .tickFormat(d3.timeFormat("%Y"));
