@@ -90,26 +90,33 @@ class BarChart {
             return d[dataName];
         });
 
-        let ticks = this.getYears(data);
+        data = BarChart.sortData(data);
+        let ticks = BarChart.getYears(data);
 
         console.log("min: " + min);
         console.log("max: " + max);
 
-        let xScale = d3.scaleTime()
-            .domain([new Date(min, 0, 1), new Date(max, 0, 1)])
-            //.domain([min, max])
-            //.range([0, width - padding + 20])
-            .rangeRound([0,width - padding + 20], 100)
-             .nice();
+        let xScale = d3.scaleOrdinal()
+            .domain([min, max])
+            //.domain([new Date(min, 0, 1), new Date(max, 0, 1)])
+            //.rangeRound([0,width - padding + 20], 100)
+            .range([0,width - padding + 20]);
+            //.rangeRoundBands([0, width - padding + 20], 0.5);
+
+        //.nice();
 
         console.log(ticks.length);
 
+        xScale = d3.scaleBand()
+            .range([0, width - padding + 20]).padding(.1);
+        xScale.domain(ticks);
+
         let xAxis = d3.axisBottom();
         xAxis.scale(xScale)
-            .ticks(d3.timeYear.every(4))
-            //.ticks(20)
-            //.tickPadding([10])
-            //.tickValues(ticks)
+            //.ticks(d3.timeYear.every(4))
+            .ticks(20)
+            .tickPadding(10)
+            .tickValues(ticks)
             .tickFormat(d3.timeFormat("%Y"));
 
 
@@ -163,9 +170,6 @@ class BarChart {
 
     updateABarGraphWithData(idName, dataName, scale, data, width, height) {
 
-        //data = [70, 100, 30];
-
-        //let data_name = 'goals';
         let svg = d3.select(idName);
 
         // add padding on all sides
@@ -181,15 +185,7 @@ class BarChart {
 
         let aScale = d3.scaleLinear()
             .domain([min, max])
-            //.range([height - padding, 10]);
-            //.rangeRound([10,height - padding + 20], 10);
-            .range([10, height - padding + 20]);
-        //.range([0, height]);
-
-        // svg.attr({
-        //     width: width + 2 * padding,
-        //     height: height + 2 * padding
-        // });
+            .range([10, height - padding]);
 
         let barWidth = (width - padding) / data.length;
 
@@ -206,8 +202,7 @@ class BarChart {
                 let nd = aScale(d[dataName]);
                 return (height - nd - 45);
             })
-            .attr("width", barWidth - 5)
-            //.attr("width", barWidth)
+            .attr("width", barWidth - 1)
             .attr("height", function (d) {
                 let nd = d[dataName];
                 return aScale(nd);
@@ -233,7 +228,7 @@ class BarChart {
                 let nd = aScale(d[dataName]);
                 return (height - nd - 45);
             })
-            .attr("width", barWidth - 5)
+            .attr("width", barWidth - 1)
             //.attr("width", barWidth)
             .attr("height", function (d) {
                 let nd = d[dataName];
@@ -243,7 +238,7 @@ class BarChart {
             .style("opacity", 1);
     }
 
-    getYears(data) {
+    static getYears(data) {
         let values = [];
         for (let i = 0, len = data.length; i < len; i++) {
             values.push(new Date(data[i].year, 0, 1));
