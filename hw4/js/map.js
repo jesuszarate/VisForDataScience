@@ -71,6 +71,25 @@ class Map {
         // Make sure and give your paths the appropriate class (see the .css selectors at
         // the top of the provided html file)
 
+
+        // This converts the projected lat/lon coordinates into an SVG path string
+        let path = d3.geoPath()
+            .projection(this.projection);
+
+        let geojson = topojson.feature(world, world.objects.countries);
+
+        let mappath = d3.select("#map").selectAll("path")
+            .data(geojson.features);
+
+        mappath.enter()
+            .append("path")
+            .attr("d", path)
+            .attr("id", function (d) {
+                return d["id"];
+            });
+
+        let graticule = d3.geoGraticule();
+        d3.select("#map").append('path').datum(graticule).attr('class', "grat").attr('d', path).attr('fill', 'none');
     }
 
 
