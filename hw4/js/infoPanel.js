@@ -21,7 +21,11 @@ class InfoPanel {
         // Hint: Select the appropriate ids to update the text content.
 
         //Set Labels
+        let host = d3.select("#host");
 
+        host.text(oneWorldCup['goals']);
+
+        console.log("aloha world");
     }
 
 }

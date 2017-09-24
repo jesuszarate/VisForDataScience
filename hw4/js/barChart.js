@@ -22,7 +22,8 @@ class BarChart {
 
         // ******* TODO: PART I *******
 
-        console.log(selectedDimension);
+        //console.log(selectedDimension);
+        this.infoPanel.updateInfo(selectedDimension);
 
 
         // Create the x and y scales; make
@@ -98,12 +99,7 @@ class BarChart {
 
         let xScale = d3.scaleOrdinal()
             .domain([min, max])
-            //.domain([new Date(min, 0, 1), new Date(max, 0, 1)])
-            //.rangeRound([0,width - padding + 20], 100)
-            .range([0,width - padding + 20]);
-            //.rangeRoundBands([0, width - padding + 20], 0.5);
-
-        //.nice();
+            .range([0, width - padding + 20]);
 
         console.log(ticks.length);
 
@@ -113,7 +109,6 @@ class BarChart {
 
         let xAxis = d3.axisBottom();
         xAxis.scale(xScale)
-            //.ticks(d3.timeYear.every(4))
             .ticks(20)
             .tickPadding(10)
             .tickValues(ticks)
@@ -208,7 +203,21 @@ class BarChart {
                 return aScale(nd);
             })
             .style("opacity", 0)
+
             .classed("barChart", true);
+
+        let lastClicked ;
+        let infoPanel = this.infoPanel;
+        newBars.on("click", function (d) {
+
+            if (lastClicked !== undefined) {
+                lastClicked.style.fill = 'steelblue';
+            }
+            this.style.fill = 'red';
+            lastClicked = this;
+            infoPanel.updateInfo(d);
+
+        });
 
         bars.exit()
             .style("opacity", 1)
