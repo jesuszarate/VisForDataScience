@@ -166,20 +166,6 @@ function updateScatterChart(idName, xScale, yScale, data) {
     let circle = svg.selectAll('circle')
         .data(data);
 
-    // circle.data(data)
-    //     .attr("cx", function (d) {
-    //         return xScale(d.a);
-    //     })
-    //     .attr("cy", function (d) {
-    //         return yScale(d.b);
-    //     })
-    //     .attr("title", function (d) {
-    //         return "x: " + d.a + ", y: " + d.b;
-    //     })
-    //     .on('click', function (d) {
-    //         console.log("x: " + d.a + ", y: " + d.b);
-    //     });
-
     let newCircle = circle.enter().append("circle")
         .attr("cx", function (d) {
             //return xScale(d.a);

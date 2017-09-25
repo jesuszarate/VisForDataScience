@@ -204,17 +204,20 @@ class BarChart {
 
             .classed("barChart", true);
 
-        let lastClicked ;
+        let lastClicked = undefined;
         let infoPanel = this.infoPanel;
+        let worldMap = this.worldMap;
         newBars.on("click", function (d) {
 
             if (lastClicked !== undefined) {
                 lastClicked.style.fill = 'steelblue';
             }
-            this.style.fill = 'red';
+            //this.attr("class", "selected");
+            //this.classed("selected");
+            this.style.fill = '#d20a11';
             lastClicked = this;
             infoPanel.updateInfo(d);
-
+            worldMap.updateMap(d);
         });
 
         bars.exit()

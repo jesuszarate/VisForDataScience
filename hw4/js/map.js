@@ -20,12 +20,17 @@ class Map {
         // Hint: If you followed our suggestion of using classes to style
         // the colors and markers for hosts/teams/winners, you can use
         // d3 selection and .classed to set these classes on and off here.
+        d3.select("#points").selectAll("circle")
+            .remove();
 
+        d3.select("#map").selectAll("path")
+            .classed("host", false)
+            .classed("team", false);
     }
 
     /**
      * Update Map with info for a specific FIFA World Cup
-     * @param wordcupData the data for one specific world cup
+     * @param worldcupData the data for one specific world cup
      */
     updateMap(worldcupData) {
 
@@ -40,10 +45,17 @@ class Map {
         // as well as a .silver. These have styling attributes for the two
         // markers.
 
+        this.addMedalMarker(worldcupData);
 
         // Select the host country and change it's color accordingly.
+        d3.select("#" + worldcupData["host_country_code"])
+            .classed("host", true);
 
         // Iterate through all participating teams and change their color as well.
+        worldcupData["teams_iso"].forEach(function (team) {
+            d3.select("#" + team)
+                .classed("team", true);
+        });
 
         // We strongly suggest using CSS classes to style the selected countries.
 
@@ -51,9 +63,49 @@ class Map {
         // Add a marker for gold/silver medalists
     }
 
+    addMedalMarker(data) {
+        let d = [];
+        let gold = {};
+        gold["LON"] = data["WIN_LON"];
+        gold["LAT"] = data["WIN_LAT"];
+        gold["medal"] = "gold";
+        d.push(gold);
+
+        let silver = {};
+        silver["LON"] = data["RUP_LON"];
+        silver["LAT"] = data["RUP_LAT"];
+        silver["medal"] = "silver";
+        d.push(silver);
+
+        this.addMarker(d, "WIN_LON", "WIN_LAT", "gold");
+    }
+
+    addMarker(data, coord_lon, coord_lat, medalColor) {
+
+        let projection = this.projection;
+        d3.select("#points").selectAll("circle")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+                //return projection([d.lon, d.lat])[0];
+                return projection([d["LON"], d["LAT"]])[0];
+            })
+            .attr("cy", function (d) {
+                //return projection([d["WIN_LAT"], d["WIN_LON"]])[1];
+                return projection([d["LON"], d["LAT"]])[1];
+            })
+            .attr("r", function (d) {
+                return 10;
+            })
+            .attr("class", function (d) {
+                return d["medal"];
+            });
+    }
+
     /**
      * Renders the actual map
-     * @param the json data with the shape of all countries
+     * @param world json data with the shape of all countries
      */
     drawMap(world) {
 
@@ -73,8 +125,7 @@ class Map {
 
 
         // This converts the projected lat/lon coordinates into an SVG path string
-        let path = d3.geoPath()
-            .projection(this.projection);
+        let path = d3.geoPath().projection(this.projection);
 
         let geojson = topojson.feature(world, world.objects.countries);
 
@@ -88,10 +139,14 @@ class Map {
             .attr("id", function (d) {
                 return d["id"];
             })
-            .attr("class", "countries");
+            .classed("countries", true);
 
         let graticule = d3.geoGraticule();
-        d3.select("#map").append('path').datum(graticule).attr('class', "grat").attr('d', path).attr('fill', 'none');
+        d3.select("#map").append('path')
+            .datum(graticule)
+            .attr('class', "grat")
+            .attr('d', path)
+            .attr('fill', 'none');
     }
 
 
