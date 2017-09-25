@@ -5,7 +5,6 @@ class Map {
      */
     constructor() {
         this.projection = d3.geoConicConformal().scale(150).translate([400, 350]);
-
     }
 
     /**
@@ -58,8 +57,6 @@ class Map {
         });
 
         // We strongly suggest using CSS classes to style the selected countries.
-
-
         // Add a marker for gold/silver medalists
     }
 
