@@ -212,8 +212,6 @@ class BarChart {
             if (lastClicked !== undefined) {
                 lastClicked.style.fill = 'steelblue';
             }
-            //this.attr("class", "selected");
-            //this.classed("selected");
             this.style.fill = '#d20a11';
             lastClicked = this;
             infoPanel.updateInfo(d);

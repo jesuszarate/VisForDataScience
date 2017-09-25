@@ -4,7 +4,6 @@ class InfoPanel {
      * Creates a infoPanel Object
      */
     constructor() {
-
         let ul = d3.select('#teams').append('ul');
     }
 
@@ -46,7 +45,55 @@ class InfoPanel {
             .data(ld)
             .enter()
             .append('li')
-            .html(String);
-    }
+            .html(String)
+            .on("click", function(d) {
+                updateSelectedCountry(d);
+            });
 
+        function updateSelectedCountry(team){
+            cleanUp();
+            d3.select('#selected_team_info').text(team + " participated in:");
+            d3.select('#winner_in_info').text(team + " winner in:");
+            d3.select('#runner_up_in_team_info').text(team + " runner up in:");
+
+            participatedIn(team);
+        }
+
+        function cleanUp(){
+            //alert("here");
+            d3.select('#selected_team').selectAll('ul').remove();
+            d3.select('#winner_in_team').selectAll('ul').remove();
+            d3.select('#runner_up_in_team').selectAll('ul').remove();
+        }
+
+        function participatedIn(team) {
+            let participated = [];
+            let runner_up = [];
+            let winner = [];
+            window.barChart.allData.forEach(function (d) {
+               if(d["TEAM_NAMES"].includes(team)){
+                   participated.push(d["EDITION"]);
+               }
+               if(d["winner"] === team){
+                   winner.push(d["EDITION"]);
+               }
+               if(d["runner_up"] === team){
+                   runner_up.push(d["EDITION"]);
+               }
+            });
+
+            addList("#selected_team_info", participated);
+            addList("#winner_in_info", winner);
+            addList("#runner_up_in_team_info", runner_up);
+        }
+
+        function addList(idName, data) {
+            let ul = d3.select(idName).append('ul');
+            ul.selectAll('li')
+                .data(data)
+                .enter()
+                .append('li')
+                .html(String);
+        }
+    }
 }
