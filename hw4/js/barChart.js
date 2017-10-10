@@ -148,10 +148,6 @@ class BarChart {
             .range([10, height - padding])
             .nice();
 
-        // let color = d3.scaleLinear()
-        //     .domain([min, max])
-        //     .range(["darkred", "lightgray", "steelblue"]);
-
         let yAxis = d3.axisLeft();
         yAxis.scale(yScale);
 

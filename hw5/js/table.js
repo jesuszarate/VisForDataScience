@@ -61,6 +61,9 @@ class Table {
 
         // Create the x axes for the goalScale.
 
+
+        this.Xaxis("#goalHeader", "none", this.cell.width, this.cell.height, "none");
+
         //add GoalAxis to header of col 1.
 
         // ******* TODO: PART V *******
@@ -116,5 +119,38 @@ class Table {
 
     }
 
+
+
+    Xaxis(idName, dataName, width, height, data) {
+        let svg = d3.select(idName)
+            .append("svg")
+             .attr("width", width * 2)
+             .attr("height", height * 2);
+
+        let padding = 45;
+
+        // let min = d3.min(data, function (d) {
+        //     return d[dataName];
+        // });
+        // let max = d3.max(data, function (d) {
+        //     return d[dataName];
+        // });
+
+        let min = 0;
+        let max = 5;
+
+        let xScale = d3.scaleLinear()
+            .domain([min, max])
+            .range([0, 100])
+            .nice();
+
+        let xAxis = d3.axisBottom();
+        xAxis.scale(xScale);
+
+        // css class for the axis
+        svg.classed("axis", true)
+            .attr("transform", "translate(" + 0 + "," + 10 + ")")
+            .call(xAxis);
+    }
 
 }
