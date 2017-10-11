@@ -48,33 +48,27 @@ class Table {
         this.gameScale = null;
 
         /**Color scales*/
+        let colorMax = [];
+        colorMax.push(d3.max(this.teamData, d => d.value["Wins"]));
+        colorMax.push(d3.max(this.teamData, d => d.value["Losses"]));
+        colorMax.push(d3.max(this.teamData, d => d.value["Result"].ranking));
+
+
         /**For aggregate columns  Use colors '#ece2f0', '#016450' for the range.*/
         this.aggregateColorScale = d3.scaleLinear()
             .range([
                 "#ece2f0",
                 '#016450'
             ])
-            // ([
-            //     "rgb(203, 208, 217)",
-            //     "rgb(172, 189, 194)",
-            //     "rgb(109, 149, 145)",
-            //     "rgb(112, 153, 149)",
-            //     "rgb(76, 123, 115)",
-            //     "rgb(57, 115, 102)",
-            //     "rgb(41, 97, 79)"])
-            .domain([
-                d3.min(this.tableElements, function (d) {
-                    //console.log(d.value["Wins"]);
-                    return d.value["Wins"];
-                }),
-                d3.max(this.tableElements, function (d) {
-                    //console.log(d.value["Wins"]);
-                    return d.value["Wins"];
-                })
-            ]);
+            .domain([0, d3.max(colorMax, d => d)]);
 
         /**For goal Column. Use colors '#cb181d', '#034e7b'  for the range.*/
-        this.goalColorScale = null;
+        this.goalColorScale = d3.scaleLinear
+            .range([
+                "#cb181d",
+                '#034e7b'
+            ])
+            .domain([0, d3.max(goals, d => d)]);
     }
 
 
@@ -157,7 +151,6 @@ class Table {
         //Populate cells (do one type of cell at a time )
 
 
-
         // Population of bar cells
         let bars = td.filter(function (d) {
             return d.vis === 'bar';
@@ -188,7 +181,7 @@ class Table {
             // is smart enough to know how to do this. Notice that arc.centroid gives us the center of the visible wedge.
             .attr("transform", function (d) {
                 console.log(d.value[0] * 10 - 10);
-                return "translate(" + (d.value[0] * 10  - 5) + "," + 10 + ")";
+                return "translate(" + (d.value[0] * 10 - 5) + "," + 10 + ")";
             })
             // Finally some extra text styling to make it look nice:
             .attr("dy", ".35em")
