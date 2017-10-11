@@ -63,7 +63,7 @@ class Table {
             .domain([0, d3.max(colorMax, d => d)]);
 
         /**For goal Column. Use colors '#cb181d', '#034e7b'  for the range.*/
-        this.goalColorScale = d3.scaleLinear
+        this.goalColorScale = d3.scaleLinear()
             .range([
                 "#cb181d",
                 '#034e7b'
