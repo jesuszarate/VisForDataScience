@@ -69,7 +69,7 @@ class Table {
         this.deltaMax = d3.max(this.tableElements, d => d.value["Delta Goals"]);
 
         this.goalColorScale = d3.scaleLinear()
-            //.domain([d3.min(goals, d => d), 0, d3.max(goals, d => d)])
+        //.domain([d3.min(goals, d => d), 0, d3.max(goals, d => d)])
             .domain([this.deltaMin, 0, this.deltaMax])
             .range(["#cb181d", "lightgray", "#034e7b"]);
     }
@@ -115,14 +115,7 @@ class Table {
             .append("tr");
 
         //Append th elements for the Team Names
-        let th = tr.selectAll("th").data(function (d) {
-            return [d.key];
-        })
-            .enter()
-            .append("th")
-            .text(function (d) {
-                return d;
-            });
+        this.populateTeamCells(tr);
 
         //Append td elements for the remaining columns.
         //Data for each cell is of the type: {'type':<'game' or 'aggregate'>, 'value':<[array of 1 or two elements]>}
@@ -165,7 +158,15 @@ class Table {
         // ******* TODO: PART IV *******
 
         //Only update list for aggregate clicks, not game clicks
+        console.log(this.tableElements[i]);
 
+        let games = this.tableElements[i].value["games"].slice();
+        for(let j = 0; j < games.length; j++){
+            let game = games[j];
+            game.key = "x" + game.key;
+            this.tableElements.splice(i + j + 1, 0, game);
+        }
+        this.updateTable();
     }
 
     /**
@@ -289,11 +290,32 @@ class Table {
             .style("font-size", "10px");
 
         // Population of text cells
+        this.populateTextCells(td);
+    }
+
+    populateTextCells(td) {
         td.filter(function (d) {
             return d.vis === 'text';
         })
             .text(function (d) {
                 return d.value;
+            });
+    }
+
+    populateTeamCells(tr) {
+
+        let table = this;
+        let th = tr.selectAll("th").data(function (d, i) {
+            //console.log("i " + i);
+            return [[d, i]];
+        })
+            .enter()
+            .append("th")
+            .text(function (d) {
+                return d[0].key;
+            })
+            .on("click", function (d) {
+                table.updateList(d[1]);
             });
     }
 }
