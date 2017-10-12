@@ -35,13 +35,14 @@ class Table {
 
 
         let goals = [];
-        goals.push(d3.max(this.teamData, d => d.value[this.goalsConcededHeader]));
-        goals.push(d3.max(this.teamData, d => d.value[this.goalsMadeHeader]));
+        goals.push(d3.max(this.tableElements, d => d.value[this.goalsConcededHeader]));
+        goals.push(d3.max(this.tableElements, d => d.value[this.goalsMadeHeader]));
 
         /** Setup the scales*/
         this.goalScale = d3.scaleLinear()
             .domain([0, d3.max(goals, d => d)])
-            .range([this.cell.buffer, this.cell.width * 2 - this.cell.buffer]);
+            //.range([this.cell.buffer, this.cell.width * 2 - this.cell.buffer]);
+            .range([this.cell.buffer, this.cell.width * 2]);
 
 
         /** Used for games/wins/losses*/
@@ -49,9 +50,9 @@ class Table {
 
         /**Color scales*/
         let colorMax = [];
-        colorMax.push(d3.max(this.teamData, d => d.value["Wins"]));
-        colorMax.push(d3.max(this.teamData, d => d.value["Losses"]));
-        colorMax.push(d3.max(this.teamData, d => d.value["Result"].ranking));
+        colorMax.push(d3.max(this.tableElements, d => d.value["Wins"]));
+        colorMax.push(d3.max(this.tableElements, d => d.value["Losses"]));
+        colorMax.push(d3.max(this.tableElements, d => d.value["Result"].ranking));
 
 
         /**For aggregate columns  Use colors '#ece2f0', '#016450' for the range.*/
@@ -63,12 +64,14 @@ class Table {
             .domain([0, d3.max(colorMax, d => d)]);
 
         /**For goal Column. Use colors '#cb181d', '#034e7b'  for the range.*/
+
+        this.deltaMin = d3.min(this.tableElements, d => d.value["Delta Goals"]);
+        this.deltaMax = d3.max(this.tableElements, d => d.value["Delta Goals"]);
+
         this.goalColorScale = d3.scaleLinear()
-            .range([
-                "#cb181d",
-                '#034e7b'
-            ])
-            .domain([0, d3.max(goals, d => d)]);
+            //.domain([d3.min(goals, d => d), 0, d3.max(goals, d => d)])
+            .domain([this.deltaMin, 0, this.deltaMax])
+            .range(["#cb181d", "lightgray", "#034e7b"]);
     }
 
 
@@ -150,7 +153,6 @@ class Table {
 
         //Populate cells (do one type of cell at a time )
 
-
         // Population of bar cells
         let bars = td.filter(function (d) {
             return d.vis === 'bar';
@@ -169,35 +171,19 @@ class Table {
             .style("fill", function (d) {
                 return colorScale(d.value[0]);
             });
-        //.classed("aggregate", true);
-
 
         let text = bars
             .append("text")
             .text(function (d) {
                 return d.value[0];
             })
-            // We need to move the label to the middle of the slice. Our arc generator
-            // is smart enough to know how to do this. Notice that arc.centroid gives us the center of the visible wedge.
             .attr("transform", function (d) {
-                console.log(d.value[0] * 10 - 10);
                 return "translate(" + (d.value[0] * 10 - 5) + "," + 10 + ")";
             })
-            // Finally some extra text styling to make it look nice:
             .attr("dy", ".35em")
             .style("fill", "white")
             .style("text-anchor", "middle")
             .style("font-size", "10px");
-
-
-        // let rectText = bars.append("text")
-        //     .text(function (d) {
-        //         console.log(d.value[0]);
-        //         return d.value[0];
-        //     })
-        //     .attr("transform", function (d) {
-        //         return "translate(" + 0  + "," + 0 + ")";
-        //     });
 
         // Population of text cells
         td.filter(function (d) {
@@ -211,6 +197,63 @@ class Table {
         //Create diagrams in the goals column
 
         //Set the color of all games that tied to light gray
+
+        let circ = td.filter(function (d) {
+            return d.vis === 'goals';
+        })
+            .append("svg")
+            .attr("width", this.cell.width * 2 + 20)
+            .attr("height", this.cell.height + 5);
+
+        let goalScale = this.goalScale;
+        let goalColorScale = this.goalColorScale;
+
+        let deltaGoals = circ.append("rect")
+            .attr("height", 10)
+            .attr("width", function (d) {
+                //return goalScale(Math.abs(d.value[2]));
+                return goalScale(Math.abs(d.value[2])) - 15;
+            })
+            .attr("x", function (d) {
+                return goalScale(d3.min([d.value[0], d.value[1]]));
+                //return d3.min([d.value[0], d.value[1]]) * 10;
+            })
+            .style("fill", function (d) {
+                return goalColorScale(d.value[2]);
+            });
+
+        let deltaMin = this.deltaMin;
+        let deltaMax = this.deltaMax;
+        let goalsMade = circ.append("circle")
+            .attr("cx", function (d) {
+                return goalScale(d.value[0]);
+            })
+            .attr("cy", function (d) {
+                return 5;
+            })
+            .attr("r", function (d) {
+                return 5;
+            })
+            .style("fill", function (d) {
+
+                return d.value[2] === 0 ? goalColorScale(0) : goalColorScale(deltaMax); // TODO: replace with the max instead
+            });
+
+        let goalsCon = circ.append("circle")
+            .attr("cx", function (d) {
+                return goalScale(d.value[1]);
+            })
+            .attr("cy", function (d) {
+                return 5;
+            })
+            .attr("r", function (d) {
+                return 5;
+            })
+            .style("fill", function (d) {
+                return d.value[2] === 0 ? goalColorScale(0) : goalColorScale(deltaMin); // TODO: replace with the max instead
+            });
+
+
 
     };
 
