@@ -148,113 +148,13 @@ class Table {
             .enter()
             .append('td');
 
-
         //Add scores as title property to appear on hover
-
         //Populate cells (do one type of cell at a time )
-
-        // Population of bar cells
-        let bars = td.filter(function (d) {
-            return d.vis === 'bar';
-        })
-            .append("svg")
-            .attr("width", this.cell.width + 20)
-            .attr("height", this.cell.height + 5);
-
-
-        let colorScale = this.aggregateColorScale;
-        let rect = bars.append("rect")
-            .attr("height", 20)
-            .attr("width", function (d) {
-                return d.value[0] * 10;
-            })
-            .style("fill", function (d) {
-                return colorScale(d.value[0]);
-            });
-
-        let text = bars
-            .append("text")
-            .text(function (d) {
-                return d.value[0];
-            })
-            .attr("transform", function (d) {
-                return "translate(" + (d.value[0] * 10 - 5) + "," + 10 + ")";
-            })
-            .attr("dy", ".35em")
-            .style("fill", "white")
-            .style("text-anchor", "middle")
-            .style("font-size", "10px");
-
-        // Population of text cells
-        td.filter(function (d) {
-            return d.vis === 'text';
-        })
-            .text(function (d) {
-                return d.value;
-            });
-
+        this.populateAggregateCells(td);
 
         //Create diagrams in the goals column
-
         //Set the color of all games that tied to light gray
-
-        let circ = td.filter(function (d) {
-            return d.vis === 'goals';
-        })
-            .append("svg")
-            .attr("width", this.cell.width * 2 + 20)
-            .attr("height", this.cell.height + 5);
-
-        let goalScale = this.goalScale;
-        let goalColorScale = this.goalColorScale;
-
-        let deltaGoals = circ.append("rect")
-            .attr("height", 10)
-            .attr("width", function (d) {
-                //return goalScale(Math.abs(d.value[2]));
-                return goalScale(Math.abs(d.value[2])) - 15;
-            })
-            .attr("x", function (d) {
-                return goalScale(d3.min([d.value[0], d.value[1]]));
-                //return d3.min([d.value[0], d.value[1]]) * 10;
-            })
-            .style("fill", function (d) {
-                return goalColorScale(d.value[2]);
-            });
-
-        let deltaMin = this.deltaMin;
-        let deltaMax = this.deltaMax;
-        let goalsMade = circ.append("circle")
-            .attr("cx", function (d) {
-                return goalScale(d.value[0]);
-            })
-            .attr("cy", function (d) {
-                return 5;
-            })
-            .attr("r", function (d) {
-                return 5;
-            })
-            .style("fill", function (d) {
-
-                return d.value[2] === 0 ? goalColorScale(0) : goalColorScale(deltaMax); // TODO: replace with the max instead
-            });
-
-        let goalsCon = circ.append("circle")
-            .attr("cx", function (d) {
-                return goalScale(d.value[1]);
-            })
-            .attr("cy", function (d) {
-                return 5;
-            })
-            .attr("r", function (d) {
-                return 5;
-            })
-            .style("fill", function (d) {
-                return d.value[2] === 0 ? goalColorScale(0) : goalColorScale(deltaMin); // TODO: replace with the max instead
-            });
-
-
-
+        this.goalsDiagram(td);
     };
 
     /**
@@ -294,4 +194,106 @@ class Table {
             .call(xAxis);
     }
 
+    goalsDiagram(td) {
+        let circ = td.filter(function (d) {
+            return d.vis === 'goals';
+        })
+            .append("svg")
+            .attr("width", this.cell.width * 2 + 20)
+            .attr("height", this.cell.height + 5);
+
+        let goalScale = this.goalScale;
+        let goalColorScale = this.goalColorScale;
+
+        let deltaGoals = circ.append("rect")
+            .attr("height", 10)
+            .attr("width", function (d) {
+                return goalScale(Math.abs(d.value[2])) - 15;
+            })
+            .attr("x", function (d) {
+                return goalScale(d3.min([d.value[0], d.value[1]]));
+            })
+            .style("fill", function (d) {
+                return goalColorScale(d.value[2]);
+            });
+
+        let deltaMin = this.deltaMin;
+        let deltaMax = this.deltaMax;
+        let goalsMade = circ.append("circle")
+            .attr("cx", function (d) {
+                return goalScale(d.value[0]);
+            })
+            .attr("cy", function (d) {
+                return 5;
+            })
+            .attr("r", function (d) {
+                return 5;
+            })
+            .attr("title", function (d) {
+                return d.value[0];
+            })
+            .style("fill", function (d) {
+
+                return d.value[2] === 0 ? goalColorScale(0) : goalColorScale(deltaMax);
+            });
+
+        let goalsCon = circ.append("circle")
+            .attr("cx", function (d) {
+                return goalScale(d.value[1]);
+            })
+            .attr("cy", function (d) {
+                return 5;
+            })
+            .attr("r", function (d) {
+                return 5;
+            })
+            .attr("title", function (d) {
+                return d.value[1];
+            })
+            .style("fill", function (d) {
+                return d.value[2] === 0 ? goalColorScale(0) : goalColorScale(deltaMin);
+            });
+    }
+
+    populateAggregateCells(td) {
+        // Population of bar cells
+        let bars = td.filter(function (d) {
+            return d.vis === 'bar';
+        })
+            .append("svg")
+            .attr("width", this.cell.width + 20)
+            .attr("height", this.cell.height + 5);
+
+
+        let colorScale = this.aggregateColorScale;
+        let rect = bars.append("rect")
+            .attr("height", 20)
+            .attr("width", function (d) {
+                return d.value[0] * 10;
+            })
+            .style("fill", function (d) {
+                return colorScale(d.value[0]);
+            });
+
+        let text = bars
+            .append("text")
+            .text(function (d) {
+                return d.value[0];
+            })
+            .attr("transform", function (d) {
+                return "translate(" + (d.value[0] * 10 - 5) + "," + 10 + ")";
+            })
+            .attr("dy", ".35em")
+            .style("fill", "white")
+            .style("text-anchor", "middle")
+            .style("font-size", "10px");
+
+        // Population of text cells
+        td.filter(function (d) {
+            return d.vis === 'text';
+        })
+            .text(function (d) {
+                return d.value;
+            });
+    }
 }
