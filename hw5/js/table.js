@@ -110,9 +110,14 @@ class Table {
         // ******* TODO: PART III *******
         //Create table rows
         let tr = d3.select("tbody").selectAll("tr")
-            .data(this.tableElements)
-            .enter()
+            .data(this.tableElements);
+
+        tr.exit().remove();
+
+        let newTr = tr.enter()
             .append("tr");
+
+        tr = newTr.merge(tr);
 
         //Append th elements for the Team Names
         this.populateTeamCells(tr);
@@ -125,21 +130,25 @@ class Table {
         let td = tr.selectAll("td").data(function (d) {
             /* create data array here */
             console.log(d);
-            return [
+            let res = [
                 //{'type': d.value['aggregate'], 'vis': 'text', 'value': d.key},
                 {
-                    'type': d.value['aggregate'],
+                    'type': d.value['type'],
                     'vis': 'goals',
                     'value': [d.value[goalsMadeHeader], d.value[goalsConcededHeader], d.value["Delta Goals"]]
                 },
-                {'type': d.value['aggregate'], 'vis': 'text', 'value': [d.value["Result"].label]},
-                {'type': d.value['aggregate'], 'vis': 'bar', 'value': [d.value["Wins"]]},
-                {'type': d.value['aggregate'], 'vis': 'bar', 'value': [d.value["Losses"]]},
-                {'type': d.value['aggregate'], 'vis': 'bar', 'value': [d.value["TotalGames"]]}
+                {'type': d.value['type'], 'vis': 'text', 'value': [d.value["Result"].label]},
+                {'type': d.value['type'], 'vis': 'bar', 'value': [d.value["Wins"]]},
+                {'type': d.value['type'], 'vis': 'bar', 'value': [d.value["Losses"]]},
+                {'type': d.value['type'], 'vis': 'bar', 'value': [d.value["TotalGames"]]}
             ];
-        })
-            .enter()
-            .append('td');
+            return res;
+        });
+
+        td.exit().remove();
+
+        let newTd = td.enter().append('td');
+        td = newTd.merge(td);
 
         //Add scores as title property to appear on hover
         //Populate cells (do one type of cell at a time )
@@ -161,10 +170,10 @@ class Table {
         console.log(this.tableElements[i]);
 
         let games = this.tableElements[i].value["games"].slice();
-        for(let j = 0; j < games.length; j++){
+        for (let j = 1; j < games.length; j++) {
             let game = games[j];
             game.key = "x" + game.key;
-            this.tableElements.splice(i + j + 1, 0, game);
+            this.tableElements.splice(i + j, 0, game);
         }
         this.updateTable();
     }
@@ -178,7 +187,6 @@ class Table {
         // ******* TODO: PART IV *******
 
     }
-
 
     Xaxis(idName, dataName, width, height, data, scale) {
         let svg = d3.select(idName)
@@ -196,31 +204,237 @@ class Table {
     }
 
     goalsDiagram(td) {
-        let circ = td.filter(function (d) {
-            return d.vis === 'goals';
-        })
-            .append("svg")
-            .attr("width", this.cell.width * 2 + 20)
+        let goalTd = td.filter(function (d) {
+            return d.vis === "goals" && d.type === "game";
+        });
+
+        let goals = goalTd.selectAll("svg")
+            .data(function (d) {
+                return [d];
+            });
+
+        goals.exit().remove();
+        goals = goals.enter();
+
+        goals = goals.append("svg").merge(goals);
+
+        goals.attr("width", this.cell.width * 2 + 20)
             .attr("height", this.cell.height + 5);
 
+        this.drawTeamGoalVis(goals);
+
+
+        /********** For game **************/
+        let goalGameTd = td.filter(function (d) {
+            return d.vis === "goals" && d.type === "aggregate";
+        });
+
+        let goals2 = goalGameTd.selectAll("svg")
+            .data(function (d) {
+                return [d];
+            });
+
+        goals2.exit().remove();
+        goals2 = goals2.enter();
+
+        goals2 = goals2.append("svg").merge(goals2);
+
+        goals2.attr("width", this.cell.width * 2 + 20)
+            .attr("height", this.cell.height + 5);
+
+
+        this.drawGameGoalVis(goals2);
+    }
+
+    drawTeamGoalVis(goals) {
         let goalScale = this.goalScale;
         let goalColorScale = this.goalColorScale;
 
-        let deltaGoals = circ.append("rect")
-            .attr("height", 10)
+        let deltaMin = this.deltaMin;
+        let deltaMax = this.deltaMax;
+
+        this.drawDeltaGoals(goals, goalScale, goalColorScale, "aggregate");
+
+
+        this.drawTeamGoalsMade(goals, goalScale, goalColorScale, deltaMax);
+        this.drawTeamGamesConsided(goals, goalScale, goalColorScale, deltaMin);
+
+    }
+
+    drawGameGoalVis(goals) {
+        let goalScale = this.goalScale;
+        let goalColorScale = this.goalColorScale;
+
+        let deltaMin = this.deltaMin;
+        let deltaMax = this.deltaMax;
+
+        this.drawDeltaGoals(goals, goalScale, goalColorScale, "game");
+
+        this.drawGameGoalsMade(goals, goalScale, goalColorScale, deltaMax);
+        this.drawGameGoalsCon(goals, goalScale, goalColorScale, deltaMin);
+    }
+
+    drawGameGoalsMade(goals, goalScale, goalColorScale, deltaMax) {
+        this.drawGame(goals, goalScale, goalColorScale, deltaMax, "made");
+    }
+
+    drawGameGoalsCon(goals, goalScale, goalColorScale, deltaMin) {
+        this.drawGame(goals, goalScale, goalColorScale, deltaMin, "con");
+    }
+
+    drawGame(goals, goalScale, goalColorScale, deltaMin, type) {
+        let height = 20;
+        let width = 20;
+        let y = 0;
+
+        let pie = d3.pie();
+
+        pie.value(function (d) {
+            return 10;
+        });
+
+        let pieData = pie([100]);
+        let arc = d3.arc();
+
+        arc.outerRadius(5);
+        arc.innerRadius(3);
+
+        let groupArea = goals
+            .append("g")
+            .attr("height", height)
             .attr("width", function (d) {
                 return goalScale(Math.abs(d.value[2])) - 15;
             })
             .attr("x", function (d) {
-                return goalScale(d3.min([d.value[0], d.value[1]]));
+                return goalScale(d.value[0]);
+            })
+            .attr("y", function (d) {
+                return 5;
+            })
+            .attr("transform", function (d) {
+                let value = d.value[1];
+                if (type === "made") {
+                    value = d.value[0];
+                }
+                return ("translate(" + goalScale(value) + "," + 5 + ")");
+            });
+
+        let groups = groupArea.selectAll("g")
+            .data(function (d) {
+                return pie([d]);
+            })
+            .enter()
+            .append("g")
+            .attr("x", function (d) {
+                return 0;
+            })
+            .attr("y", function (d) {
+                return 0;
+            })
+            .style("fill", function (d) {
+                //return goalColorScale(d.data.value[2]);
+                let value = d.value[1];
+                if (type === "made") {
+                    value = d.value[0];
+                }
+                return value === 0 ? goalColorScale(0) : goalColorScale(deltaMin);
+            });
+        groups.append("path")
+            .attr("d", arc);
+    }
+
+    populateAggregateCells(td) {
+        let barTd = td.filter(function (d) {
+            return d.vis === 'bar' && d.type === "aggregate";
+        });
+
+        let bars = barTd.selectAll("svg")
+            .data(function (d) {
+                return [d];
+            });
+
+        bars.exit().remove();
+        bars = bars.enter();
+
+        bars = bars.append("svg").merge(bars);
+
+        bars.attr("width", this.cell.width + 20)
+            .attr("height", this.cell.height + 5);
+
+
+        let colorScale = this.aggregateColorScale;
+
+        let rect = bars.selectAll("rect")
+            .data(function (d) {
+                return [d];
+            });
+
+        rect.exit().remove();
+
+        rect = rect
+            .enter()
+            .append("rect")
+            .merge(rect);
+
+        rect.attr("height", 20)
+            .attr("width", function (d) {
+                return d.value[0] * 10;
+            })
+            .style("fill", function (d) {
+                return colorScale(d.value[0]);
+            });
+
+
+        let text = bars.selectAll("text")
+            .data(function (d) {
+                return [d];
+            });
+
+        text.exit().remove();
+
+        text = text.enter().append("text").merge(text);
+
+        text.text(function (d) {
+            return d.value[0];
+        })
+            .attr("transform", function (d) {
+                return "translate(" + (d.value[0] * 10 - 5) + "," + 10 + ")";
+            })
+            .attr("dy", ".35em")
+            .style("fill", "white")
+            .style("text-anchor", "middle")
+            .style("font-size", "10px");
+
+        // Population of text cells
+        this.populateTextCells(td);
+    }
+
+    drawDeltaGoals(goals, goalScale, goalColorScale, type) {
+        let height = 20;
+        let y = 0;
+        if (type === "game") {
+            height = 3;
+            y = 3;
+        }
+        let deltaGoals = goals.append("rect")
+            .attr("height", height)
+            .attr("width", function (d) {
+                return goalScale(Math.abs(d.value[2])) - 15;
+                //return goalScale(Math.abs(d.value[2])) - 15;
+            })
+            .attr("x", function (d) {
+                return goalScale(d3.min([d.value[0], d.value[1]])) + 3;
+            })
+            .attr("y", function (d) {
+                return y;
             })
             .style("fill", function (d) {
                 return goalColorScale(d.value[2]);
             });
+    }
 
-        let deltaMin = this.deltaMin;
-        let deltaMax = this.deltaMax;
-        let goalsMade = circ.append("circle")
+    drawTeamGoalsMade(goals, goalScale, goalColorScale, deltaMax) {
+        let goalsMade = goals.append("circle")
             .attr("cx", function (d) {
                 return goalScale(d.value[0]);
             })
@@ -237,8 +451,10 @@ class Table {
 
                 return d.value[2] === 0 ? goalColorScale(0) : goalColorScale(deltaMax);
             });
+    }
 
-        let goalsCon = circ.append("circle")
+    drawTeamGamesConsided(goals, goalScale, goalColorScale, deltaMin) {
+        let goalsCon = goals.append("circle")
             .attr("cx", function (d) {
                 return goalScale(d.value[1]);
             })
@@ -256,50 +472,18 @@ class Table {
             });
     }
 
-    populateAggregateCells(td) {
-        // Population of bar cells
-        let bars = td.filter(function (d) {
-            return d.vis === 'bar';
-        })
-            .append("svg")
-            .attr("width", this.cell.width + 20)
-            .attr("height", this.cell.height + 5);
-
-
-        let colorScale = this.aggregateColorScale;
-        let rect = bars.append("rect")
-            .attr("height", 20)
-            .attr("width", function (d) {
-                return d.value[0] * 10;
-            })
-            .style("fill", function (d) {
-                return colorScale(d.value[0]);
-            });
-
-        let text = bars
-            .append("text")
-            .text(function (d) {
-                return d.value[0];
-            })
-            .attr("transform", function (d) {
-                return "translate(" + (d.value[0] * 10 - 5) + "," + 10 + ")";
-            })
-            .attr("dy", ".35em")
-            .style("fill", "white")
-            .style("text-anchor", "middle")
-            .style("font-size", "10px");
-
-        // Population of text cells
-        this.populateTextCells(td);
-    }
-
     populateTextCells(td) {
-        td.filter(function (d) {
+        let text = td.filter(function (d) {
             return d.vis === 'text';
-        })
-            .text(function (d) {
-                return d.value;
-            });
+        });
+
+        text.exit().remove();
+
+        text = text.enter().append("text").merge(text);
+
+        text.text(function (d) {
+            return d.value;
+        });
     }
 
     populateTeamCells(tr) {
@@ -308,14 +492,19 @@ class Table {
         let th = tr.selectAll("th").data(function (d, i) {
             //console.log("i " + i);
             return [[d, i]];
-        })
-            .enter()
+        });
+
+        th.exit().remove();
+
+        th = th.enter()
             .append("th")
-            .text(function (d) {
-                return d[0].key;
-            })
-            .on("click", function (d) {
-                table.updateList(d[1]);
-            });
+            .merge(th);
+
+        th.text(function (d) {
+            return d[0].key;
+        }).on("click", function (d) {
+            table.updateList(d[1]);
+        })
+
     }
 }
