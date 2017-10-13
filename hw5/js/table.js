@@ -204,46 +204,29 @@ class Table {
     }
 
     goalsDiagram(td) {
-        let goalTd = td.filter(function (d) {
-            return d.vis === "goals" && d.type === "game";
+
+        let allGoals = td.filter(function (d) {
+            return d.vis === "goals";
         });
 
-        let goals = goalTd.selectAll("svg")
+
+        let goalsTeam = allGoals.selectAll("svg")
             .data(function (d) {
                 return [d];
             });
 
-        goals.exit().remove();
-        goals = goals.enter();
+        /********** For Team **************/
+        goalsTeam.exit().remove();
+        goalsTeam = goalsTeam.enter();
 
-        goals = goals.append("svg").merge(goals);
+        goalsTeam = goalsTeam.append("svg").merge(goalsTeam);
 
-        goals.attr("width", this.cell.width * 2 + 20)
-            .attr("height", this.cell.height + 5);
-
-        this.drawTeamGoalVis(goals);
-
-
-        /********** For game **************/
-        let goalGameTd = td.filter(function (d) {
-            return d.vis === "goals" && d.type === "aggregate";
-        });
-
-        let goals2 = goalGameTd.selectAll("svg")
-            .data(function (d) {
-                return [d];
-            });
-
-        goals2.exit().remove();
-        goals2 = goals2.enter();
-
-        goals2 = goals2.append("svg").merge(goals2);
-
-        goals2.attr("width", this.cell.width * 2 + 20)
+        goalsTeam.attr("width", this.cell.width * 2 + 20)
             .attr("height", this.cell.height + 5);
 
 
-        this.drawGameGoalVis(goals2);
+        this.drawGameGoalVis(goalsTeam);
+
     }
 
     drawTeamGoalVis(goals) {
@@ -321,6 +304,7 @@ class Table {
 
         let groups = groupArea.selectAll("g")
             .data(function (d) {
+
                 return pie([d]);
             })
             .enter()
@@ -339,8 +323,16 @@ class Table {
                 }
                 return value === 0 ? goalColorScale(0) : goalColorScale(deltaMin);
             });
+
         groups.append("path")
-            .attr("d", arc);
+            .attr("d", d3.arc()
+                .outerRadius(5)
+                .innerRadius(function (d) {
+                    if (d.data["type"] === "aggregate") {
+                        return 0;
+                    }
+                    return 3;
+                }));
     }
 
     populateAggregateCells(td) {
@@ -410,23 +402,26 @@ class Table {
     }
 
     drawDeltaGoals(goals, goalScale, goalColorScale, type) {
-        let height = 20;
-        let y = 0;
-        if (type === "game") {
-            height = 3;
-            y = 3;
-        }
+
         let deltaGoals = goals.append("rect")
-            .attr("height", height)
+            .attr("height", function (d) {
+                if (d.value["type"] === "game") {
+                    return 3;
+                }
+                return 10;
+            })
             .attr("width", function (d) {
+                //return goalScale(Math.abs(d.value[2])) - 15 - 6;
                 return goalScale(Math.abs(d.value[2])) - 15;
-                //return goalScale(Math.abs(d.value[2])) - 15;
             })
             .attr("x", function (d) {
                 return goalScale(d3.min([d.value[0], d.value[1]])) + 3;
             })
             .attr("y", function (d) {
-                return y;
+                if (d.value["type"] === "game") {
+                    return 3;
+                }
+                return 0;
             })
             .style("fill", function (d) {
                 return goalColorScale(d.value[2]);
