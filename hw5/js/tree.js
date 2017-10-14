@@ -16,15 +16,77 @@ class Tree {
 
         // ******* TODO: PART VI *******
 
+        let height = 800;
+        let width = 300;
+
         //Create a tree and give it a size() of 800 by 300. 
+        let treemap = d3.tree().size([height, width]);
+
+        let root = d3.stratify()
+            .id(function(d) {
+                return d.id.replace( /^\D+/g, '');//d.id.substr(len - 1, len - 1);
+            })
+            .parentId(function(d) {
+                return d.ParentGame;
+            })(treeData);
 
 
-        //Create a root for the tree using d3.stratify(); 
+        //Add nodes and links to the tree.
+        let data = d3.hierarchy(root, function (d) {
+            return d.children;
+        });
 
-        
-        //Add nodes and links to the tree. 
+        data = treemap(data);
 
-       
+        console.log(data.descendants());
+
+        let margin = {top: 20, right: 90, bottom: 30, left: 90};
+
+        let nodes = data.descendants();
+        let links = data.descendants().slice(1);
+
+        nodes.forEach(function (d) {
+           d.y = d.y + 100;
+        });
+
+        let treeg = d3.select("#tree");
+        let link = treeg.selectAll(".link")
+            .data(links)
+            .enter().append("path")
+            .attr("class", "link")
+            .attr("d", function (d) {
+                return "M" + d.y + "," + d.x
+                    + "C" + (d.y + d.parent.y) / 2 + "," + d.x
+                    + " " + (d.y + d.parent.y) / 2 + "," + d.parent.x
+                    + " " + d.parent.y + "," + d.parent.x;
+            });
+
+
+        let node = treeg.selectAll(".node")
+            .data(nodes)
+            .enter().append("g")
+            .attr("class", function (d) {
+
+                let clss = (d.data.data["Wins"] > 0) ? "winner" : "node";
+                return clss + " circle";
+            })
+            .attr("transform", function(d) {
+                return "translate(" + d.y + "," + d.x + ")"; });
+
+        // adds the circle to the node
+        node.append("circle")
+            .attr("r", 10);
+
+        // adds the text to the node
+        node.append("text")
+            .attr("dy", ".35em")
+            .attr("x", function(d) { return d.children ? -13 : 13; })
+            .style("text-anchor", function(d) {
+                return d.children ? "end" : "start"; })
+            .text(function(d) {
+                return d.data.data.Team;
+            });
+
     };
 
     /**

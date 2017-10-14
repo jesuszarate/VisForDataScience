@@ -87,8 +87,6 @@ class Table {
         //Update Scale Domains
 
         // Create the x axes for the goalScale.
-
-
         this.Xaxis("#goalHeader", "none", this.cell.width, this.cell.height, "none");
 
         //add GoalAxis to header of col 1.
@@ -96,12 +94,85 @@ class Table {
         // ******* TODO: PART V *******
 
         // Set sorting callback for clicking on headers
+        let headers = d3.select("#matchTable").select("tr");
+
+        headers.selectAll("td")
+            .on("click", function () {
+                table.sortCallBack(table, this.innerText, "single");
+            })
+            .on("dblclick", function () {
+                table.sortCallBack(table, this.innerText, "double");
+            });
+
+        let table = this;
+        headers.selectAll("th")
+            .on("click", function (d) {
+                table.sortCallBack(table, this.innerText, "single");
+            })
+            .on("dblclick", function () {
+                table.sortCallBack(table, this.innerText, "double");
+            });
+
+        console.log(headers);
 
         // Clicking on headers should also trigger collapseList() and updateTable(). 
 
 
     }
 
+    sortCallBack(table, title, clickType) {
+
+        // Clear of all games
+        table.collapseList();
+
+        let tableElements = table.tableElements;
+        let criteria;
+
+        title = title.replace(/\s/g, '');
+        switch (title) {
+            case "Team":
+                criteria = "key";
+                break;
+            case "Goals":
+                criteria = "Goals Made";
+                break;
+            case "Round/Result":
+                criteria = "Result";
+                break;
+            case "Wins":
+                criteria = "Wins";
+                break;
+            case "Losses":
+                criteria = "Losses";
+                break;
+            case "TotalGames":
+                criteria = "TotalGames";
+                break;
+        }
+
+        if (criteria === "key") {
+            tableElements.sort(function (x, y) {
+                if(clickType === "double")
+                    return d3.descending(x[criteria], y[criteria]);
+                return d3.ascending(x[criteria], y[criteria]);
+            });
+        }
+        else if (criteria === "Result") {
+            tableElements.sort(function (x, y) {
+                if(clickType === "double")
+                    return d3.descending(x.value[criteria].ranking, y.value[criteria].ranking);
+                return d3.ascending(x.value[criteria].ranking, y.value[criteria].ranking);
+            });
+        }
+        else {
+            tableElements.sort(function (x, y) {
+                if(clickType === "double")
+                    return d3.descending(x.value[criteria], y.value[criteria]);
+                return d3.ascending(x.value[criteria], y.value[criteria]);
+            });
+        }
+        table.updateTable();
+    }
 
     /**
      * Updates the table contents with a row for each element in the global variable tableElements.
@@ -168,30 +239,24 @@ class Table {
 
         //Only update list for aggregate clicks, not game clicks
         //console.log(this.tableElements[i]);
-        if(this.tableElements[i].value["type"] === "game"){
+        if (this.tableElements[i].value["type"] === "game") {
             return;
         }
-        else if(this.tableElements[i].value["type"] !== "game" &&
-            this.tableElements[i + 1].value["type"] === "game"){
+        else if (this.tableElements[i].value["type"] !== "game" &&
+            this.tableElements[i + 1].value["type"] === "game") {
             let games = this.tableElements[i].value["games"].slice();
 
-            // RE
-
-
-
-
-
-
+            // REMOVE GAMES
             for (let j = 0; j < games.length; j++) {
                 let game = games[j];
                 game.key = game.key.substr(1, game.key.length);
                 this.tableElements.splice(i + 1, 1);
             }
         }
-        else
-        {
+        else {
             let games = this.tableElements[i].value["games"].slice();
 
+            // ADD GAMES
             for (let j = 0; j < games.length; j++) {
                 let game = games[j];
                 game.key = "x" + game.key;
@@ -208,6 +273,17 @@ class Table {
     collapseList() {
 
         // ******* TODO: PART IV *******
+
+        let games = this.tableElements;
+
+        // REMOVE GAMES
+        for (let j = 0; j < games.length; j++) {
+            let game = games[j];
+            if (game.value["type"] === "game") {
+                game.key = game.key.substr(1, game.key.length);
+                this.tableElements.splice(j, 1);
+            }
+        }
 
     }
 
@@ -360,7 +436,7 @@ class Table {
 
         let barTd = td.selectAll("svg")
             .data(function (d) {
-               return[d];
+                return [d];
             });
         barTd.exit().remove();
         barTd = barTd.enter();
