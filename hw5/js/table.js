@@ -150,13 +150,13 @@ class Table {
         let newTd = td.enter().append('td');
         td = newTd.merge(td);
 
-        //Add scores as title property to appear on hover
-        //Populate cells (do one type of cell at a time )
-        this.populateAggregateCells(td);
-
         //Create diagrams in the goals column
         //Set the color of all games that tied to light gray
         this.goalsDiagram(td);
+
+        //Add scores as title property to appear on hover
+        //Populate cells (do one type of cell at a time )
+        this.populateAggregateCells(td);
     };
 
     /**
@@ -167,13 +167,36 @@ class Table {
         // ******* TODO: PART IV *******
 
         //Only update list for aggregate clicks, not game clicks
-        console.log(this.tableElements[i]);
+        //console.log(this.tableElements[i]);
+        if(this.tableElements[i].value["type"] === "game"){
+            return;
+        }
+        else if(this.tableElements[i].value["type"] !== "game" &&
+            this.tableElements[i + 1].value["type"] === "game"){
+            let games = this.tableElements[i].value["games"].slice();
 
-        let games = this.tableElements[i].value["games"].slice();
-        for (let j = 1; j < games.length; j++) {
-            let game = games[j];
-            game.key = "x" + game.key;
-            this.tableElements.splice(i + j, 0, game);
+            // RE
+
+
+
+
+
+
+            for (let j = 0; j < games.length; j++) {
+                let game = games[j];
+                game.key = game.key.substr(1, game.key.length);
+                this.tableElements.splice(i + 1, 1);
+            }
+        }
+        else
+        {
+            let games = this.tableElements[i].value["games"].slice();
+
+            for (let j = 0; j < games.length; j++) {
+                let game = games[j];
+                game.key = "x" + game.key;
+                this.tableElements.splice(i + j + 1, 0, game);
+            }
         }
         this.updateTable();
     }
@@ -209,7 +232,6 @@ class Table {
             return d.vis === "goals";
         });
 
-
         let goalsTeam = allGoals.selectAll("svg")
             .data(function (d) {
                 return [d];
@@ -224,7 +246,6 @@ class Table {
         goalsTeam.attr("width", this.cell.width * 2 + 20)
             .attr("height", this.cell.height + 5);
 
-
         this.drawGameGoalVis(goalsTeam);
 
     }
@@ -236,7 +257,7 @@ class Table {
         let deltaMin = this.deltaMin;
         let deltaMax = this.deltaMax;
 
-        this.drawDeltaGoals(goals, goalScale, goalColorScale, "aggregate");
+        this.drawDeltaGoals(goals, goalScale, goalColorScale);
 
 
         this.drawTeamGoalsMade(goals, goalScale, goalColorScale, deltaMax);
@@ -251,7 +272,7 @@ class Table {
         let deltaMin = this.deltaMin;
         let deltaMax = this.deltaMax;
 
-        this.drawDeltaGoals(goals, goalScale, goalColorScale, "game");
+        this.drawDeltaGoals(goals, goalScale, goalColorScale);
 
         this.drawGameGoalsMade(goals, goalScale, goalColorScale, deltaMax);
         this.drawGameGoalsCon(goals, goalScale, goalColorScale, deltaMin);
@@ -336,19 +357,29 @@ class Table {
     }
 
     populateAggregateCells(td) {
-        let barTd = td.filter(function (d) {
-            return d.vis === 'bar' && d.type === "aggregate";
+
+        let barTd = td.selectAll("svg")
+            .data(function (d) {
+               return[d];
+            });
+        barTd.exit().remove();
+        barTd = barTd.enter();
+
+        barTd = barTd.append("svg").merge(barTd);
+
+        let bars = barTd.filter(function (d) {
+            return d.vis === 'bar';// && d.type === "aggregate";
         });
 
-        let bars = barTd.selectAll("svg")
-            .data(function (d) {
-                return [d];
-            });
+        // bars = barTd.selectAll("svg")
+        //     .data(function (d) {
+        //         return [d];
+        //     });
 
-        bars.exit().remove();
-        bars = bars.enter();
-
-        bars = bars.append("svg").merge(bars);
+        // bars.exit().remove();
+        // bars = bars.enter();
+        //
+        // bars = bars.append("svg").merge(bars);
 
         bars.attr("width", this.cell.width + 20)
             .attr("height", this.cell.height + 5);
@@ -401,7 +432,7 @@ class Table {
         this.populateTextCells(td);
     }
 
-    drawDeltaGoals(goals, goalScale, goalColorScale, type) {
+    drawDeltaGoals(goals, goalScale, goalColorScale) {
 
         let deltaGoals = goals.append("rect")
             .attr("height", function (d) {
@@ -411,11 +442,17 @@ class Table {
                 return 10;
             })
             .attr("width", function (d) {
-                //return goalScale(Math.abs(d.value[2])) - 15 - 6;
+                if (d.value["type"] === "game") {
+                    return goalScale(Math.abs(d.value[2])) - 15 - 6;
+                }
                 return goalScale(Math.abs(d.value[2])) - 15;
             })
             .attr("x", function (d) {
-                return goalScale(d3.min([d.value[0], d.value[1]])) + 3;
+                if (d.value["type"] === "game") {
+                    return goalScale(d3.min([d.value[0], d.value[1]])) + 3;
+
+                }
+                return goalScale(d3.min([d.value[0], d.value[1]]));
             })
             .attr("y", function (d) {
                 if (d.value["type"] === "game") {
@@ -428,44 +465,44 @@ class Table {
             });
     }
 
-    drawTeamGoalsMade(goals, goalScale, goalColorScale, deltaMax) {
-        let goalsMade = goals.append("circle")
-            .attr("cx", function (d) {
-                return goalScale(d.value[0]);
-            })
-            .attr("cy", function (d) {
-                return 5;
-            })
-            .attr("r", function (d) {
-                return 5;
-            })
-            .attr("title", function (d) {
-                return d.value[0];
-            })
-            .style("fill", function (d) {
-
-                return d.value[2] === 0 ? goalColorScale(0) : goalColorScale(deltaMax);
-            });
-    }
-
-    drawTeamGamesConsided(goals, goalScale, goalColorScale, deltaMin) {
-        let goalsCon = goals.append("circle")
-            .attr("cx", function (d) {
-                return goalScale(d.value[1]);
-            })
-            .attr("cy", function (d) {
-                return 5;
-            })
-            .attr("r", function (d) {
-                return 5;
-            })
-            .attr("title", function (d) {
-                return d.value[1];
-            })
-            .style("fill", function (d) {
-                return d.value[2] === 0 ? goalColorScale(0) : goalColorScale(deltaMin);
-            });
-    }
+    // drawTeamGoalsMade(goals, goalScale, goalColorScale, deltaMax) {
+    //     let goalsMade = goals.append("circle")
+    //         .attr("cx", function (d) {
+    //             return goalScale(d.value[0]);
+    //         })
+    //         .attr("cy", function (d) {
+    //             return 5;
+    //         })
+    //         .attr("r", function (d) {
+    //             return 5;
+    //         })
+    //         .attr("title", function (d) {
+    //             return d.value[0];
+    //         })
+    //         .style("fill", function (d) {
+    //
+    //             return d.value[2] === 0 ? goalColorScale(0) : goalColorScale(deltaMax);
+    //         });
+    // }
+    //
+    // drawTeamGamesConsided(goals, goalScale, goalColorScale, deltaMin) {
+    //     let goalsCon = goals.append("circle")
+    //         .attr("cx", function (d) {
+    //             return goalScale(d.value[1]);
+    //         })
+    //         .attr("cy", function (d) {
+    //             return 5;
+    //         })
+    //         .attr("r", function (d) {
+    //             return 5;
+    //         })
+    //         .attr("title", function (d) {
+    //             return d.value[1];
+    //         })
+    //         .style("fill", function (d) {
+    //             return d.value[2] === 0 ? goalColorScale(0) : goalColorScale(deltaMin);
+    //         });
+    // }
 
     populateTextCells(td) {
         let text = td.filter(function (d) {
