@@ -5,6 +5,7 @@ class Tree {
      */
     constructor() {
         this.links = null;
+        this.text = null;
     }
 
     /**
@@ -23,10 +24,10 @@ class Tree {
         let treemap = d3.tree().size([height, width]);
 
         let root = d3.stratify()
-            .id(function(d) {
-                return d.id.replace( /^\D+/g, '');//d.id.substr(len - 1, len - 1);
+            .id(function (d) {
+                return d.id.replace(/^\D+/g, '');//d.id.substr(len - 1, len - 1);
             })
-            .parentId(function(d) {
+            .parentId(function (d) {
                 return d.ParentGame;
             })(treeData);
 
@@ -44,7 +45,7 @@ class Tree {
         let links = data.descendants().slice(1);
 
         nodes.forEach(function (d) {
-           d.y = d.y + 100;
+            d.y = d.y + 100;
         });
 
         let treeg = d3.select("#tree");
@@ -76,23 +77,27 @@ class Tree {
                 let clss = (d.data.data["Wins"] > 0) ? "winner" : "node";
                 return clss + " circle";
             })
-            .attr("transform", function(d) {
-                return "translate(" + d.y + "," + d.x + ")"; });
+            .attr("transform", function (d) {
+                return "translate(" + d.y + "," + d.x + ")";
+            });
 
         // adds the circle to the node
         node.append("circle")
             .attr("r", 10);
 
         // adds the text to the node
-        node.append("text")
+        this.text = node.append("text")
             .attr("dy", ".35em")
-            .attr("x", function(d) { return d.children ? -13 : 13; })
-            .attr("class", function (d) {
-                return "winner text";
+            .attr("x", function (d) {
+                return d.children ? -13 : 13;
             })
-            .style("text-anchor", function(d) {
-                return d.children ? "end" : "start"; })
-            .text(function(d) {
+            .attr("class", function (d) {
+                return "text";
+            })
+            .style("text-anchor", function (d) {
+                return d.children ? "end" : "start";
+            })
+            .text(function (d) {
                 return d.data.data.Team;
             });
     };
@@ -105,21 +110,42 @@ class Tree {
      */
     updateTree(row) {
         // ******* TODO: PART VII *******
-        console.log(row);
 
-        if(row.key.substr(0,0) === "x"){
-
-        }
-        else {
+        if (row.key.substr(0, 1) === "x") {
+            let key = row.key.substr(1, row.key.length - 1);
+            this.text.attr("class", function (d) {
+                let data = d.data.data;
+                if (data["Team"] === key && data["Opponent"] === row.value["Opponent"] ||
+                    data["Team"] === row.value["Opponent"] && data["Opponent"] === key) {
+                    return "selectedLabel text";
+                }
+                return "text";
+            });
             this.links.attr("class", function (d) {
                 let data = d.data.data;
-                if(data["Team"] === row.key && +data["Wins"] === 1){
+                if (data["Team"] === key && data["Opponent"] === row.value["Opponent"] ||
+                    data["Team"] === row.value["Opponent"] && data["Opponent"] === key) {
                     return "link selected";
                 }
                 return "link";
             })
         }
-
+        else {
+            this.text.attr("class", function (d) {
+                let data = d.data.data;
+                if (data["Team"] === row.key && +data["Wins"] === 1) {
+                    return "selectedLabel text";
+                }
+                return "text";
+            });
+            this.links.attr("class", function (d) {
+                let data = d.data.data;
+                if (data["Team"] === row.key && +data["Wins"] === 1) {
+                    return "link selected";
+                }
+                return "link";
+            })
+        }
     }
 
     /**
