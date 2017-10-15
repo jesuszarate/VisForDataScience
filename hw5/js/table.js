@@ -113,10 +113,7 @@ class Table {
                 table.sortCallBack(table, this.innerText, "double");
             });
 
-        console.log(headers);
-
         // Clicking on headers should also trigger collapseList() and updateTable(). 
-
 
     }
 
@@ -333,20 +330,20 @@ class Table {
 
     }
 
-    drawTeamGoalVis(goals) {
-        let goalScale = this.goalScale;
-        let goalColorScale = this.goalColorScale;
-
-        let deltaMin = this.deltaMin;
-        let deltaMax = this.deltaMax;
-
-        this.drawDeltaGoals(goals, goalScale, goalColorScale);
-
-
-        this.drawTeamGoalsMade(goals, goalScale, goalColorScale, deltaMax);
-        this.drawTeamGamesConsided(goals, goalScale, goalColorScale, deltaMin);
-
-    }
+    // drawTeamGoalVis(goals) {
+    //     let goalScale = this.goalScale;
+    //     let goalColorScale = this.goalColorScale;
+    //
+    //     let deltaMin = this.deltaMin;
+    //     let deltaMax = this.deltaMax;
+    //
+    //     this.drawDeltaGoals(goals, goalScale, goalColorScale);
+    //
+    //
+    //     this.drawTeamGoalsMade(goals, goalScale, goalColorScale, deltaMax);
+    //     this.drawTeamGamesConsided(goals, goalScale, goalColorScale, deltaMin);
+    //
+    // }
 
     drawGameGoalVis(goals) {
         let goalScale = this.goalScale;
@@ -420,11 +417,7 @@ class Table {
                 return 0;
             })
             .style("fill", function (d) {
-                //return goalColorScale(d.data.value[2]);
-                let value = d.value[1];
-                if (type === "made") {
-                    value = d.value[0];
-                }
+                let value = d.data.value[2];
                 return value === 0 ? goalColorScale(0) : goalColorScale(deltaMin);
             });
 
