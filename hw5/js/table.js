@@ -185,8 +185,12 @@ class Table {
 
         tr.exit().remove();
 
+        let tree = this.tree;
         let newTr = tr.enter()
-            .append("tr");
+            .append("tr")
+            .on("mouseover", function (d, i) {
+                tree.updateTree(d);
+            });
 
         tr = newTr.merge(tr);
 

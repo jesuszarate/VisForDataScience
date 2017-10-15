@@ -4,7 +4,7 @@ class Tree {
      * Creates a Tree Object
      */
     constructor() {
-        
+        this.links = null;
     }
 
     /**
@@ -38,8 +38,6 @@ class Tree {
 
         data = treemap(data);
 
-        console.log(data.descendants());
-
         let margin = {top: 20, right: 90, bottom: 30, left: 90};
 
         let nodes = data.descendants();
@@ -51,22 +49,30 @@ class Tree {
 
         let treeg = d3.select("#tree");
         let link = treeg.selectAll(".link")
-            .data(links)
+            .data(links);
+
+        link.exit().remove();
+
+        let newLink = link
             .enter().append("path")
-            .attr("class", "link")
+            .attr("class", function (d) {
+                return "link";
+                //return d.data.data["Team"] === "Argentina"
+                //    || d.data.data["Team"] === "Argentina" ? "link selected" : "link";
+            })
             .attr("d", function (d) {
                 return "M" + d.y + "," + d.x
                     + "C" + (d.y + d.parent.y) / 2 + "," + d.x
                     + " " + (d.y + d.parent.y) / 2 + "," + d.parent.x
                     + " " + d.parent.y + "," + d.parent.x;
             });
-
+        link = newLink.merge(link);
+        this.links = link;
 
         let node = treeg.selectAll(".node")
             .data(nodes)
             .enter().append("g")
             .attr("class", function (d) {
-
                 let clss = (d.data.data["Wins"] > 0) ? "winner" : "node";
                 return clss + " circle";
             })
@@ -81,12 +87,14 @@ class Tree {
         node.append("text")
             .attr("dy", ".35em")
             .attr("x", function(d) { return d.children ? -13 : 13; })
+            .attr("class", function (d) {
+                return "winner text";
+            })
             .style("text-anchor", function(d) {
                 return d.children ? "end" : "start"; })
             .text(function(d) {
                 return d.data.data.Team;
             });
-
     };
 
     /**
@@ -97,7 +105,21 @@ class Tree {
      */
     updateTree(row) {
         // ******* TODO: PART VII *******
-    
+        console.log(row);
+
+        if(row.key.substr(0,0) === "x"){
+
+        }
+        else {
+            this.links.attr("class", function (d) {
+                let data = d.data.data;
+                if(data["Team"] === row.key && +data["Wins"] === 1){
+                    return "link selected";
+                }
+                return "link";
+            })
+        }
+
     }
 
     /**

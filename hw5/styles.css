@@ -131,8 +131,8 @@ header {
 .link {
     fill: none;
     stroke: #555;
-    stroke-opacity: 0.4;
-    stroke-width: 2px;
+    #stroke-opacity: 0.4;
+    stroke-width: 20px;
 }
 
 .selected {
