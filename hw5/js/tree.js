@@ -154,6 +154,8 @@ class Tree {
     clearTree() {
         // ******* TODO: PART VII *******
 
-        // You only need two lines of code for this! No loops! 
+        // You only need two lines of code for this! No loops!
+        this.text.attr("class", "text");
+        this.links.attr("class", "link");
     }
 }

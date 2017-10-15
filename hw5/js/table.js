@@ -190,6 +190,9 @@ class Table {
             .append("tr")
             .on("mouseover", function (d, i) {
                 tree.updateTree(d);
+            })
+            .on("mouseout", function () {
+                tree.clearTree();
             });
 
         tr = newTr.merge(tr);
