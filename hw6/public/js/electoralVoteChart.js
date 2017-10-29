@@ -60,7 +60,7 @@ class ElectoralVoteChart {
         let Max = d3.max(electionResult, d => +d["Total_EV"]);
         let Min = d3.min(electionResult, d => +d["Total_EV"]);
 
-        console.log(this.svgWidth);
+        //console.log(this.svgWidth);
         let scale = d3.scaleLinear()
             .range([0, this.svgWidth])
             .domain([0, 500]);
@@ -117,8 +117,8 @@ class ElectoralVoteChart {
                 if (i === RCount)
                     RPos = curr;
 
-                console.log(i);
-                console.log(ICount + DCount + RCount);
+                //console.log(i);
+                //console.log(ICount + DCount + RCount);
                 return curr;
             })
             .attr("y", reference.svgHeight / 2)
@@ -215,8 +215,6 @@ class ElectoralVoteChart {
             resultArr = resultArr.concat(party);
             indArra = indArra.concat(this.getValues(party));
         }
-        console.log("indra: ");
-        console.log(indArra);
         return resultArr;
     }
 

@@ -140,7 +140,6 @@ class TileChart {
         let width = this.svgWidth / this.maxColumns;
         let height = this.svgHeight / this.maxRows;
 
-
         this.svg.selectAll("g").remove();
 
         let reference = this;
@@ -149,16 +148,15 @@ class TileChart {
 
         tile.exit().remove();
 
-
         let tileEnter = tile.enter().append("g")
             .call(tip)
             .attr("transform", function (d) {
                 return "translate(" + d["Space"] * width + "," + d["Row"] * height + ")";
-                //return "translate(" + 0 + "," + 0 + ")";
             }).attr("class", function (d) {
                 return "tile";
             })
-            .on("mouseover", tip.show);
+            .on("mouseover", tip.show)
+            .on("mouseleave", tip.hide);
 
         this.drawTile(tileEnter, colorScale, height, width);
         tile.merge(tileEnter);
@@ -168,20 +166,13 @@ class TileChart {
 
         let reference = this;
         tile.append("rect")
-        // .attr("x", function (d, i) {
-        //     return d["Space"] * width;
-        // })
-        // .attr("y", function (d, i) {
-        //     return d["Row"] * height;
-        // })
             .attr("width", width)
             .style("fill", function (d) {
                 if (d["State_Winner"] === "I")
                     return "#45AD6A";
                 return (colorScale(+d["RD_Difference"]));
             })
-            .attr("height", height)
-        ;
+            .attr("height", height);
 
         let label = tile.append("text");
 
@@ -207,8 +198,6 @@ class TileChart {
             .attr("class", function (d) {
                 return reference.chooseClass(d["Party"]) + " tilestext";
             });
-
-        //this.svg.selectAll("g").call(tip);
     }
 
 }
