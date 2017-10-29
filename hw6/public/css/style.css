@@ -184,4 +184,7 @@ h3{
     font-size: 32px;
 }
 
-
+.lineChart{
+    stroke:#000;
+    stroke-dasharray: 4;
+}
