@@ -20,10 +20,7 @@ class ElectoralVoteChart {
             .attr("width", this.svgWidth)
             .attr("height", this.svgHeight);
 
-        this.yearScale = d3.scaleLinear()
-            .range([50, this.svgWidth - 50])
-            //.range([this.cell.buffer, this.cell.width * 2 - this.cell.buffer]);
-            .domain([1940, 2012]);
+
     }
 
     /**
@@ -60,60 +57,74 @@ class ElectoralVoteChart {
 
         // Grouping by winning party
 
+        let Max = d3.max(electionResult, d => +d["Total_EV"]);
+        let Min = d3.min(electionResult, d => +d["Total_EV"]);
 
-        let electionResultsByParty = d3.nest()
-            .key(function (d) {
-                return d["State_Winner"];
-            })
-            .entries(electionResult);
+        console.log(this.svgWidth);
+        let scale = d3.scaleLinear()
+            .range([0, this.svgWidth])
+            .domain([0, 500]);
 
-        console.log(electionResultsByParty);
+        // let electionResultsByParty = d3.nest()
+        //     .key(function (d) {
+        //         return d["State_Winner"];
+        //     })
+        //     .entries(electionResult);
 
-        let cleanResults = [];
+        let electionResultsByParty = {"I":[], "D":[], "R":[]};
 
-        for (let prty in electionResultsByParty) {
-            console.log("list: ");
-            console.log(electionResultsByParty[prty].values);
-            cleanResults = cleanResults.concat(electionResultsByParty[prty].values)
-        }
-
-
-        cleanResults = cleanResults.sort(function (x, y) {
-            return d3.ascending(x["RD_Difference"], y["RD_Difference"]);
+        electionResult.forEach(function (state) {
+            electionResultsByParty[state["State_Winner"]].push(state);
         });
 
+        for (let key in electionResultsByParty) {
+           let party =  electionResultsByParty[key];
+
+           electionResultsByParty[key] = party.sort(function (x, y) {
+               return d3.ascending(+x["RD_Difference"], +y["RD_Difference"]);
+           });
+
+        }
+
+        let cleanResults = this.joinArrays(electionResultsByParty);
 
         //Create the stacked bar chart.
         //Use the global color scale to color code the rectangles.
         //HINT: Use .electoralVotes class to style your bars.
 
 
+        this.svg.selectAll("rect").remove();
+
+        let reference = this;
         let rect = this.svg.selectAll("rect")
             .data(cleanResults);
 
         rect.exit().remove();
 
-        // rect = rect.selectAll("g").enter()
-        //     .attr("transform", function (d) {
-        //         return "translate(" + d["Total_EV"] + "," + 10 + ")";
-        //     }).merge(rect);
-
-        //newRect.exit().remove();
-
         let rectEnter = rect.enter().append("rect");
 
+        let previus = 0;
         let another = rectEnter
             .attr("x", function (d, i) {
-                return i * d["Total_EV"];
+                let curr = previus;
+                previus += scale(+d["Total_EV"]);
+                return curr;
             })
-            .attr("y", 0)
+            .attr("y", reference.svgHeight / 2)
             .attr("width", function (d) {
-                return d["Total_EV"];
+
+                return scale(+d["Total_EV"]);
             })
-            .attr("height", 20)
+            .attr("id", function (d, i) {
+                //return i * scale(+d["Total_EV"]);
+                return (+d["RD_Difference"] + " " + d["Total_EV"]);
+            })
+            .style("fill", function (d) {
+                return (colorScale(+d["RD_Difference"]));
+            })
+            .attr("height", 50)
             .attr("class", "electoralVotes");
         rect = rectEnter.merge(another);
-
 
 
         //Display total count of electoral votes won by the Democrat and Republican party
@@ -124,9 +135,26 @@ class ElectoralVoteChart {
         //Display a bar with minimal width in the center of the bar chart to indicate the 50% mark
         //HINT: Use .middlePoint class to style this bar.
 
+        let midpoint = this.svg.append("rect")
+            .attr("x", function (d, i) {
+                return reference.svgWidth/2;
+            })
+            .attr("y", 70)
+            .attr("width", function (d) {
+                return 3;
+            })
+            .attr("height", 60)
+            .classed("middlePoint", true);
+
         //Just above this, display the text mentioning the total number of electoral votes required
         // to win the elections throughout the country
         //HINT: Use .electoralVotesNote class to style this text element
+        let middleText = "Electorial Vote (270 needed to win)";
+        this.svg.append("text")
+            .attr("x", (reference.svgWidth/2) - (middleText.length * 7))
+            .attr("y", 40)
+            .attr("class", "electoralVoteText")
+            .text(middleText);
 
         //HINT: Use the chooseClass method to style your elements based on party wherever necessary.
 
@@ -139,5 +167,27 @@ class ElectoralVoteChart {
 
     };
 
+    joinArrays(arr){
+        let indArra = [];
+        let resultArr = [];
+        for (let key in arr) {
+            let party =  arr[key];
+            resultArr = resultArr.concat(party);
+            indArra = indArra.concat(this.getValues(party));
+        }
+        console.log("indra: ");
+        console.log(indArra);
+        return resultArr;
+    }
+
+    getValues(arr){
+        let res = [];
+        for (let key in arr) {
+            let party = arr[key];
+            let num = party["RD_Difference"];
+            res.push(num);
+        }
+        return res;
+    }
 
 }

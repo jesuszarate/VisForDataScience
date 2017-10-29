@@ -99,7 +99,7 @@ class YearChart {
         //Style the chart by adding a dashed line that connects all these years.
         //HINT: Use .lineChart to style this dashed line
         this.renderLines(this.svg, this.yearScale, circleRadius);
-        this.renderNodes(node, this.yearScale, circleRadius);
+        this.renderNodes(node, this.yearScale, circleRadius, this.colorScale);
 
         //line = newLine.merge(line);
 
