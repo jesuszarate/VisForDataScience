@@ -18,9 +18,13 @@ class ElectoralVoteChart {
         //creates svg element within the div
         this.svg = divelectoralVotes.append("svg")
             .attr("width", this.svgWidth)
-            .attr("height", this.svgHeight)
+            .attr("height", this.svgHeight);
 
-    };
+        this.yearScale = d3.scaleLinear()
+            .range([50, this.svgWidth - 50])
+            //.range([this.cell.buffer, this.cell.width * 2 - this.cell.buffer]);
+            .domain([1940, 2012]);
+    }
 
     /**
      * Returns the class that needs to be assigned to an element.
@@ -68,23 +72,49 @@ class ElectoralVoteChart {
         let cleanResults = [];
 
         for (let prty in electionResultsByParty) {
-            cleanResults.concat(electionResultsByParty[prty].values)
+            console.log("list: ");
+            console.log(electionResultsByParty[prty].values);
+            cleanResults = cleanResults.concat(electionResultsByParty[prty].values)
         }
 
-        for (let prty in cleanResults) {
 
-            cleanResults[prty].sort(function (x, y) {
-                return d3.ascending(x["RD_Difference"], y["RD_Difference"]);
-            });
-        }
+        cleanResults = cleanResults.sort(function (x, y) {
+            return d3.ascending(x["RD_Difference"], y["RD_Difference"]);
+        });
 
-        console.log(electionResultsByParty);
-
-        this.svg.selectAll(".rec")
 
         //Create the stacked bar chart.
         //Use the global color scale to color code the rectangles.
         //HINT: Use .electoralVotes class to style your bars.
+
+
+        let rect = this.svg.selectAll("rect")
+            .data(cleanResults);
+
+        rect.exit().remove();
+
+        // rect = rect.selectAll("g").enter()
+        //     .attr("transform", function (d) {
+        //         return "translate(" + d["Total_EV"] + "," + 10 + ")";
+        //     }).merge(rect);
+
+        //newRect.exit().remove();
+
+        let rectEnter = rect.enter().append("rect");
+
+        let another = rectEnter
+            .attr("x", function (d, i) {
+                return i * d["Total_EV"];
+            })
+            .attr("y", 0)
+            .attr("width", function (d) {
+                return d["Total_EV"];
+            })
+            .attr("height", 20)
+            .attr("class", "electoralVotes");
+        rect = rectEnter.merge(another);
+
+
 
         //Display total count of electoral votes won by the Democrat and Republican party
         //on top of the corresponding groups of bars.
