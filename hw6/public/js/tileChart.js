@@ -104,20 +104,21 @@ class TileChart {
                 return [0, 0];
             })
             .html((d) => {
+                console.log("here");
                 //populate data in the following format
-                //  tooltip_data = {
-                //  "state": State,
-                //  "winner":d.State_Winner
-                //  "electoralVotes" : Total_EV
-                //  "result":[
-                //  {"nominee": D_Nominee_prop,"votecount": D_Votes,"percentage": D_Percentage,"party":"D"} ,
-                //  {"nominee": R_Nominee_prop,"votecount": R_Votes,"percentage": R_Percentage,"party":"R"} ,
-                //  {"nominee": I_Nominee_prop,"votecount": I_Votes,"percentage": I_Percentage,"party":"I"}
-                //  ]
-                //  }
+                let tooltip_data = {
+                    "state": d.State,
+                    "winner": d.State_Winner,
+                    "electoralVotes": d.Total_EV,
+                    "result": [
+                        {"nominee": d.D_Nominee_prop, "votecount": d.D_Votes, "percentage": d.D_Percentage, "party": "D"},
+                        {"nominee": d.R_Nominee_prop, "votecount": d.R_Votes, "percentage": d.R_Percentage, "party": "R"},
+                        {"nominee": d.I_Nominee_prop, "votecount": d.I_Votes, "percentage": d.I_Percentage, "party": "I"}
+                    ]
+                };
                 //pass this as an argument to the tooltip_render function then,
                 //return the HTML content returned from that method.
-                return;
+                return this.tooltip_render(tooltip_data);
             });
 
         // ******* TODO: PART IV *******
@@ -136,43 +137,43 @@ class TileChart {
         //then, vote percentage and number of votes won by each party.
         //HINT: Use the .republican, .democrat and .independent classes to style your elements.
 
-        console.log(electionResult);
-
-        this.svg.selectAll("rect").remove();
-
-        let reference = this;
-        let rect = this.svg.selectAll("rect")
-            .data(electionResult);
-
-        rect.exit().remove();
-
-        let rectEnter = rect.enter().append("rect");
-
         let width = this.svgWidth / this.maxColumns;
         let height = this.svgHeight / this.maxRows;
-        rectEnter.merge(this.drawTile(rectEnter, colorScale, height, width));
 
-        // let tile = this.svg.selectAll("g")
-        //     .data(this.electionResult);
-        //
-        // tile.exit().remove();
-        //
-        // let tileEnter = tile.enter().append("g")
-        //     .enter().append("g")
-        //     .attr("transform", function (d) {
-        //         return "translate(" + wi + "," + (circleRadius + 5) + ")";
-        //     });
+
+        this.svg.selectAll("g").remove();
+
+        let reference = this;
+        let tile = this.svg.selectAll("g")
+            .data(electionResult);
+
+        tile.exit().remove();
+
+
+        let tileEnter = tile.enter().append("g")
+            .call(tip)
+            .attr("transform", function (d) {
+                return "translate(" + d["Space"] * width + "," + d["Row"] * height + ")";
+                //return "translate(" + 0 + "," + 0 + ")";
+            }).attr("class", function (d) {
+                return "tile";
+            })
+            .on("mouseover", tip.show);
+
+        this.drawTile(tileEnter, colorScale, height, width);
+        tile.merge(tileEnter);
     };
 
-    drawTile(rectEnter, colorScale, height, width) {
+    drawTile(tile, colorScale, height, width) {
 
-        return rectEnter
-            .attr("x", function (d, i) {
-                return d["Space"] * width;
-            })
-            .attr("y", function (d, i) {
-                return d["Row"] * height;
-            })
+        let reference = this;
+        tile.append("rect")
+        // .attr("x", function (d, i) {
+        //     return d["Space"] * width;
+        // })
+        // .attr("y", function (d, i) {
+        //     return d["Row"] * height;
+        // })
             .attr("width", width)
             .style("fill", function (d) {
                 if (d["State_Winner"] === "I")
@@ -180,9 +181,34 @@ class TileChart {
                 return (colorScale(+d["RD_Difference"]));
             })
             .attr("height", height)
+        ;
+
+        let label = tile.append("text");
+
+        let midX = height / 2;
+        let midY = width / 2;
+
+        label.append("tspan")
+            .attr("x", midX)
+            .attr("y", midY)
+            .text(function (d) {
+                return d["Abbreviation"];
+            })
             .attr("class", function (d) {
-                return "tile";
+                return reference.chooseClass(d["Party"]) + " tilestext";
             });
+
+        label.append("tspan")
+            .attr("x", midX)
+            .attr("y", midY + 24)
+            .text(function (d) {
+                return d["Total_EV"];
+            })
+            .attr("class", function (d) {
+                return reference.chooseClass(d["Party"]) + " tilestext";
+            });
+
+        //this.svg.selectAll("g").call(tip);
     }
 
 }
