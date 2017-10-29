@@ -135,7 +135,8 @@ class YearChart {
                 reference.nodeSelected(d["YEAR"], reference);
 
                 d3.csv("data/year_timeline_" + d["YEAR"] + ".csv", function (error, yearTimeline) {
-                    reference.electoralVoteChart.update(yearTimeline, colorScale)
+                    reference.electoralVoteChart.update(yearTimeline, colorScale);
+                    reference.tileChart.update(yearTimeline, colorScale)
                 });
             })
             .on("mouseover", function (d) {

@@ -65,26 +65,24 @@ class ElectoralVoteChart {
             .range([0, this.svgWidth])
             .domain([0, 500]);
 
-        // let electionResultsByParty = d3.nest()
-        //     .key(function (d) {
-        //         return d["State_Winner"];
-        //     })
-        //     .entries(electionResult);
-
-        let electionResultsByParty = {"I":[], "D":[], "R":[]};
+        let electionResultsByParty = {"I": [], "D": [], "R": []};
 
         electionResult.forEach(function (state) {
             electionResultsByParty[state["State_Winner"]].push(state);
         });
 
         for (let key in electionResultsByParty) {
-           let party =  electionResultsByParty[key];
+            let party = electionResultsByParty[key];
 
-           electionResultsByParty[key] = party.sort(function (x, y) {
-               return d3.ascending(+x["RD_Difference"], +y["RD_Difference"]);
-           });
-
+            electionResultsByParty[key] = party.sort(function (x, y) {
+                return d3.ascending(+x["RD_Difference"], +y["RD_Difference"]);
+            });
         }
+
+        let ICount = electionResultsByParty["I"].length;
+        let RCount = ICount + electionResultsByParty["R"].length;
+        let DCount = RCount + electionResultsByParty["D"].length;
+
 
         let cleanResults = this.joinArrays(electionResultsByParty);
 
@@ -103,11 +101,24 @@ class ElectoralVoteChart {
 
         let rectEnter = rect.enter().append("rect");
 
+        let IPos = 0;
+        let DPos = 0;
+        let RPos = 0;
+
         let previus = 0;
         let another = rectEnter
             .attr("x", function (d, i) {
                 let curr = previus;
                 previus += scale(+d["Total_EV"]);
+                if (i === ICount)
+                    IPos = curr;
+                if (i === DCount)
+                    DPos = curr;
+                if (i === RCount)
+                    RPos = curr;
+
+                console.log(i);
+                console.log(ICount + DCount + RCount);
                 return curr;
             })
             .attr("y", reference.svgHeight / 2)
@@ -115,15 +126,15 @@ class ElectoralVoteChart {
 
                 return scale(+d["Total_EV"]);
             })
-            .attr("id", function (d, i) {
-                //return i * scale(+d["Total_EV"]);
-                return (+d["RD_Difference"] + " " + d["Total_EV"]);
-            })
             .style("fill", function (d) {
+                if (d["State_Winner"] === "I")
+                    return "#45AD6A";
                 return (colorScale(+d["RD_Difference"]));
             })
             .attr("height", 50)
-            .attr("class", "electoralVotes");
+            .attr("class", function (d) {
+                return "electoralVotes";
+            });
         rect = rectEnter.merge(another);
 
 
@@ -137,7 +148,7 @@ class ElectoralVoteChart {
 
         let midpoint = this.svg.append("rect")
             .attr("x", function (d, i) {
-                return reference.svgWidth/2;
+                return reference.svgWidth / 2;
             })
             .attr("y", 70)
             .attr("width", function (d) {
@@ -149,12 +160,41 @@ class ElectoralVoteChart {
         //Just above this, display the text mentioning the total number of electoral votes required
         // to win the elections throughout the country
         //HINT: Use .electoralVotesNote class to style this text element
+
+        this.svg.selectAll("text").remove();
+
         let middleText = "Electorial Vote (270 needed to win)";
         this.svg.append("text")
-            .attr("x", (reference.svgWidth/2) - (middleText.length * 7))
+            .attr("x", (reference.svgWidth / 2) - (middleText.length * 7))
             .attr("y", 40)
             .attr("class", "electoralVoteText")
             .text(middleText);
+
+        this.svg.append("text")
+            .attr("x", IPos)
+            .attr("y", 40)
+            .attr("class", function (d) {
+                return "electoralVoteText" + reference.chooseClass("I")
+            })
+            .text(ICount);
+
+        this.svg.append("text")
+            .attr("x", DPos)
+            .attr("y", 40)
+            .attr("class", function (d) {
+                return "electoralVoteText" + reference.chooseClass("D")
+            })
+            .text(DCount);
+
+        this.svg.append("text")
+            .attr("x", RPos)
+            .attr("y", 40)
+            .attr("fill", this.chooseClass("R"))
+            .attr("class", function (d) {
+                return "electoralVoteText" + reference.chooseClass("R")
+            })
+            .text(RCount);
+
 
         //HINT: Use the chooseClass method to style your elements based on party wherever necessary.
 
@@ -167,11 +207,11 @@ class ElectoralVoteChart {
 
     };
 
-    joinArrays(arr){
+    joinArrays(arr) {
         let indArra = [];
         let resultArr = [];
         for (let key in arr) {
-            let party =  arr[key];
+            let party = arr[key];
             resultArr = resultArr.concat(party);
             indArra = indArra.concat(this.getValues(party));
         }
@@ -180,7 +220,7 @@ class ElectoralVoteChart {
         return resultArr;
     }
 
-    getValues(arr){
+    getValues(arr) {
         let res = [];
         for (let key in arr) {
             let party = arr[key];
