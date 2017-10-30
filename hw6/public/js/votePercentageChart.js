@@ -120,57 +120,93 @@ class VotePercentageChart {
 
         //HINT: Use the chooseClass method to style your elements based on party wherever necessary.
 
-        let I_PopularPercentage;
-        let D_PopularPercentage;
-        let R_PopularPercentage;
-        for (let res in electionResult) {
-            if (electionResult[res].I_PopularPercentage !== undefined) {
-                I_PopularPercentage = electionResult[res].I_PopularPercentage;
-                I_PopularPercentage = +I_PopularPercentage.substring(0, I_PopularPercentage.length - 1);
-            }
-            if (electionResult[res].D_PopularPercentage !== undefined) {
-                D_PopularPercentage = electionResult[res].D_PopularPercentage;
-                D_PopularPercentage = +D_PopularPercentage.substring(0, D_PopularPercentage.length - 1);
-            }
-            if (electionResult[res].R_PopularPercentage !== undefined) {
-                R_PopularPercentage = electionResult[res].R_PopularPercentage;
-                R_PopularPercentage = +R_PopularPercentage.substring(0, R_PopularPercentage.length - 1);
-            }
-        }
-
-        let percentageData = [
-            {"Party": "I", "percentage": I_PopularPercentage},
-            {"Party": "D", "percentage": D_PopularPercentage},
-            {"Party": "R", "percentage": R_PopularPercentage}];
+        let percentageData = [electionResult[0], electionResult[1], electionResult[2]];
 
         this.svg.selectAll("rect").remove();
 
         let reference = this;
-        let rect = this.svg.selectAll("rect")
+
+        //-----------------------------------------------
+        this.svg.selectAll("g").remove();
+
+        let tile = this.svg.selectAll("g")
             .data(percentageData);
 
-        rect.exit().remove();
+        tile.exit().remove();
 
-        let rectEnter = rect.enter().append("rect");
+        let prev = 0;
+        let tileEnter = tile.enter().append("g")
+            .call(tip)
+            .attr("transform", function (d, i) {
+                let curr = prev;
+                let party =  reference.getPopularPercentage(d, i);
+                prev += (party / 100) * reference.svgWidth;
+                return "translate(" + curr + "," + 130 + ")";
+            })
+            .on("mouseover", tip.show)
+            .on("mouseleave", tip.hide);
 
-        this.createRectangle(rectEnter, this.svgWidth);
+        this.createRectangle(tileEnter, reference.svgWidth);
+        tile.merge(tileEnter);
+
     };
 
+    getPopularPercentage(d, i){
+        let percentage = d[this.getParty(i) + "_PopularPercentage"];
+        return +percentage.substring(0, percentage.length - 1);
+    }
+
+    getParty(num) {
+        if (num === 0) {
+            return "I";
+        }
+        if (num === 1) {
+            return "D";
+        }
+        if (num === 2) {
+            return "R";
+        }
+    }
 
     createRectangle(rect, width) {
         let prev = 0;
         let reference = this;
-        rect.attr("x", function (d) {
-            let curr = prev;
-            prev += (d["percentage"] / 100) * width;
-            return curr;
-        })
-            .attr("width", function (d) {
-                return (d["percentage"] / 100) * width;
+        rect.append("rect")
+            .attr("y", 40)
+            .attr("width", function (d, i) {
+                return (reference.getPopularPercentage(d, i) / 100) * width;
             })
-            .attr("class", function (d) {
-                return "votePercentage " + reference.chooseClass(d["Party"]);
+            .attr("class", function (d, i) {
+                return "votePercentage " + reference.chooseClass(reference.getParty(i));
             })
             .attr("height", 50);
+
+        let label = rect.append("text")
+            .attr("class", function (d, i) {
+                return "votesPercentageText " + reference.chooseClass(reference.getParty(i));
+            });
+
+        label.append("tspan")
+            .attr("x", function (d, i) {
+                return ((reference.getPopularPercentage(d, i) / 100) * width)/2;
+            })
+            .attr("y", 0)
+            .text(function (d, i) {
+                return d[reference.getParty(i) + "_Nominee_prop"];
+            });
+
+
+        label.append("tspan")
+            .attr("x", function (d, i) {
+                return ((reference.getPopularPercentage(d, i) / 100) * width)/4;
+            })
+            .attr("y", 30)
+            .text(function (d, i) {
+                return d[reference.getParty(i) + "_PopularPercentage"];
+            })
+            // .style("fill", function (d, i) {
+            //     return reference.chooseClass(i);
+            // })
+
     }
 }

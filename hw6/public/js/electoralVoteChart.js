@@ -89,12 +89,36 @@ class ElectoralVoteChart {
         //Create the stacked bar chart.
         //Use the global color scale to color code the rectangles.
         //HINT: Use .electoralVotes class to style your bars.
-
-
-        this.svg.selectAll("rect").remove();
-
         let reference = this;
-        let rect = this.svg.selectAll("rect")
+
+        this.svg.selectAll("g").remove();
+
+        let h = this.svgHeight / 3;
+        let brush = d3.brushX().extent([[0,h+20 ],[this.svgWidth,100+30]]).on("end", this.brushed);
+
+        this.svg.selectAll("g")
+            .attr("class", "brush")
+            .style("fill", "gray")
+            .call(brush);
+
+
+        let groupNumber = [1];
+        let bars = this.svg.selectAll("g")
+            .data(groupNumber);
+
+
+        let prev = 0;
+        let barsEnter = bars.enter().append("g")
+            .attr("transform", function (d, i) {
+                return "translate(" + 0 + "," + 0 + ")";
+            });
+
+        bars = bars.merge(barsEnter);
+
+        //-------------------------------------------------------
+        //bars.selectAll("rect").remove();
+
+        let rect = bars.selectAll("rect")
             .data(cleanResults);
 
         rect.exit().remove();
@@ -116,9 +140,6 @@ class ElectoralVoteChart {
                     DPos = curr;
                 if (i === RCount)
                     RPos = curr;
-
-                //console.log(i);
-                //console.log(ICount + DCount + RCount);
                 return curr;
             })
             .attr("y", reference.svgHeight / 2)
@@ -137,6 +158,7 @@ class ElectoralVoteChart {
             });
         rect = rectEnter.merge(another);
 
+        bars.merge(barsEnter);
 
         //Display total count of electoral votes won by the Democrat and Republican party
         //on top of the corresponding groups of bars.
@@ -204,8 +226,20 @@ class ElectoralVoteChart {
         //Call the update method of shiftChart and pass the data corresponding to brush selection.
         //HINT: Use the .brush class to style the brush.
 
+        this.svg.append("g")
+        //.attr("class", "brush")
+            .call(brush);
+
+        bars.exit().remove();
+
+
+
 
     };
+
+    brushed(){
+        alert("here");
+    }
 
     joinArrays(arr) {
         let indArra = [];
