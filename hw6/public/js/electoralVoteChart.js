@@ -106,7 +106,7 @@ class ElectoralVoteChart {
                     states.push(reference.selection[state].state);
                 }
             }
-            console.log(states);
+            reference.shiftChart.update(states);
         });
 
         this.svg.selectAll("g")
