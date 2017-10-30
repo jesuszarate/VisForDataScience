@@ -94,18 +94,29 @@ class ElectoralVoteChart {
         this.svg.selectAll("g").remove();
 
         let h = this.svgHeight / 3;
-        let brush = d3.brushX().extent([[0,h+20 ],[this.svgWidth,100+30]]).on("end", this.brushed);
+
+        let brush = d3.brushX().extent([[0,h+20 ],[this.svgWidth,100+30]]).on("end", function () {
+            let selection = d3.event.selection;
+
+            let states = [];
+            for(let state in reference.selection){
+
+                let loc = reference.selection[state].loc;
+                if( loc >= selection[0]  && loc <= selection[1]){
+                    states.push(reference.selection[state].state);
+                }
+            }
+            console.log(states);
+        });
 
         this.svg.selectAll("g")
             .attr("class", "brush")
             .style("fill", "gray")
             .call(brush);
 
-
         let groupNumber = [1];
         let bars = this.svg.selectAll("g")
             .data(groupNumber);
-
 
         let prev = 0;
         let barsEnter = bars.enter().append("g")
@@ -125,6 +136,8 @@ class ElectoralVoteChart {
 
         let rectEnter = rect.enter().append("rect");
 
+        let selection = [];
+
         let IPos = 0;
         let DPos = 0;
         let RPos = 0;
@@ -140,6 +153,9 @@ class ElectoralVoteChart {
                     DPos = curr;
                 if (i === RCount)
                     RPos = curr;
+
+                let location = {"state": d.State, "loc": curr};
+                selection.push(location);
                 return curr;
             })
             .attr("y", reference.svgHeight / 2)
@@ -160,6 +176,7 @@ class ElectoralVoteChart {
 
         bars.merge(barsEnter);
 
+        this.selection = selection;
         //Display total count of electoral votes won by the Democrat and Republican party
         //on top of the corresponding groups of bars.
         //HINT: Use the .electoralVoteText class to style your text elements;  Use this in combination with
@@ -231,14 +248,18 @@ class ElectoralVoteChart {
             .call(brush);
 
         bars.exit().remove();
-
-
-
-
     };
 
     brushed(){
-        alert("here");
+
+        console.log(this.svgWidth);
+        let selection = d3.event.selection;
+        //console.log(d);
+        console.log(selection);
+        console.log(hi());
+
+
+
     }
 
     joinArrays(arr) {
